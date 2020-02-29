@@ -398,7 +398,7 @@ def update_game(room_id, game):
 	# conn.commit()
 
 def update_player_number(room_id, user_id, player_number):
-	cur.execute("update ubo_joins set player_number=%s where room_id=%s and user_id=%s;", (player_number, room_id, user_id,))
+	cur.execute("update uno_joins set player_number=%s where room_id=%s and user_id=%s;", (player_number, room_id, user_id,))
 	# conn.commit()
 
 def delete_user_from_room(user_id):
