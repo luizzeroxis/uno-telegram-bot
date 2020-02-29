@@ -363,7 +363,7 @@ def select_game(room_id):
 	cur.execute("select game_pickle from uno_rooms where id=%s limit 1;", (room_id,))
 	result = cur.fetchone()[0]
 
-	return pickle.reads(result)
+	return pickle.loads(result)
 
 def check_room_empty(room_id):
 	cur.execute("select room_id from uno_joins where room_id=%s limit 1;", (room_id,))
