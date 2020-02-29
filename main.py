@@ -1,6 +1,7 @@
 import os
 import logging
 import psycopg2
+import pickle
 import uno, unoparser
 
 from telegram import ParseMode
@@ -197,29 +198,44 @@ def handler_begin(update, context):
 
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
-	users = select_users_in_room(room_id)
 
-	game = uno.Game(len(users))
+	if room_id:
+		users = select_users_in_room(room_id)
 
-	global games, player_numbers
-	games[room_id] = game
-	player_numbers = {}
+		game = uno.Game(len(users))
+		update_game(room_id, game)
+		db_commit()
 
-	for i in range(len(users)):
-		player_numbers[users[i]] = i
+		global games, player_numbers
+		games[room_id] = game
+		player_numbers = {}
 
-	send_message_to_room(context, room_id, 'Game has begun')
-	send_message_to_room(context, room_id, lambda user_id: gameinfo(game, user_id))
+		for i in range(len(users)):
+			player_numbers[users[i]] = i
+
+		send_message_to_room(context, room_id, 'Game has begun')
+		send_message_to_room(context, room_id, lambda user_id: gameinfo(game, user_id))
+
+	else:
+		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>")
 
 def handler_end(update, context):
 	
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
 
-	global games
-	games[room_id] = None
+	if room_id:
 
-	send_message_to_room(context, room_id, 'Game has ended')
+		update_game(room_id, None)
+		db_commit()
+
+		global games
+		games[room_id] = None
+
+		send_message_to_room(context, room_id, 'Game has ended')
+
+	else:
+		update.message.reply_text("You cannot end the game if you are not in a room! Try /new or /join <room number>")
 
 def handler_chat(update, context):
 
@@ -239,28 +255,38 @@ def handler_chat(update, context):
 
 def handler_text_message(update, context):
 	
-	message = update.message.text
-
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
-	game = games[room_id]
-	player = player_numbers[user_id]
 
-	try:
-		play = unoparser.parse_play(message)
-		if game.play(player, play):
+	if room_id:
 
-			send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_string(play))
+		message = update.message.text
 
-			# send message to player that is current
-			# context.bot.send_message(chat_id= , text='')
-			# update.message.reply_text(gameinfo(game, user_id))
+		game = select_game(room_id)
+		# game = games[room_id]
+		player = player_numbers[user_id]
 
-		else:
-			update.message.reply_text('That is an invalid play.')
+		try:
+			play = unoparser.parse_play(message)
+			if game.play(player, play):
 
-	except unoparser.InputParsingError as e:
-		update.message.reply_text('You are dumb! ' + str(e))
+				update_game(room_id, game)
+				db_commit()
+
+				send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_string(play))
+
+				# send message to player that is current
+				# context.bot.send_message(chat_id= , text='')
+				# update.message.reply_text(gameinfo(game, user_id))
+
+			else:
+				update.message.reply_text('That is an invalid play.')
+
+		except unoparser.InputParsingError as e:
+			update.message.reply_text('You are dumb! ' + str(e))
+
+	else:
+		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
 
 def handler_error(update, context):
 	try:
@@ -329,9 +355,15 @@ def get_current_room(user_id):
 	return None
 
 def select_users_in_room(room_id):
-	cur.execute("select user_id from uno_joins where room_id=%s order by user_id", (room_id,))
+	cur.execute("select user_id from uno_joins where room_id=%s order by user_id;", (room_id,))
 
 	return [row[0] for row in cur]
+
+def select_game(room_id):
+	cur.execute("select game_pickle from uno_rooms where id=%s limit 1;", (room_id,))
+	result = cur.fetchone()[0]
+
+	return pickle.reads(result)
 
 def check_room_empty(room_id):
 	cur.execute("select room_id from uno_joins where room_id=%s limit 1;", (room_id,))
@@ -360,6 +392,10 @@ def insert_room():
 
 def insert_user_to_room(room_id, user_id):
 	cur.execute("insert into uno_joins (room_id, user_id) values (%s, %s);", (room_id, user_id,))
+	# conn.commit()
+
+def update_game(room_id, game):
+	cur.execute("update uno_rooms set game_pickle=%s where id=%s;", (pickle.dumps(game), room_id,))
 	# conn.commit()
 
 def delete_user_from_room(user_id):
