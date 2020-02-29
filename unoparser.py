@@ -1,7 +1,7 @@
 import uno
 
-KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Reverse', 'Skip', '+2', '+4', 'Wild']
-COLOR_STRINGS = ['', 'Blue', 'Green', 'Red', 'Yellow']
+KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'R', 'S', '+2', '+4', 'W']
+COLOR_STRINGS = ['', 'b', 'g', 'r', 'y']
 
 ACTION_CMD_STRINGS = {
 	'd': uno.ACTION_DRAW,
@@ -26,7 +26,7 @@ COLOR_CMD_STRINGS = {
 }
 
 def card_string(card):
-	return ' '.join(x for x in [card_color_string(card.color), card_kind_string(card.kind)] if x)
+	return ''.join(x for x in [card_color_string(card.color), card_kind_string(card.kind)] if x)
 
 def card_list_string(card_list):
 	return ", ".join([card_string(card) for card in card_list])
@@ -60,7 +60,7 @@ def play_string(play):
 
 def parse_play(string):
 
-	parser = Parser(string)
+	parser = Parser(string.lower())
 
 	parser.clear_whitespace()
 	action = parser.check_dict(ACTION_CMD_STRINGS)

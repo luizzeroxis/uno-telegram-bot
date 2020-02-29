@@ -90,14 +90,16 @@ def handler_status(update, context):
 
 	if room_id:
 		users = select_users_in_room(room_id)
+		game = select_game(room_id)
+		player_number = select_player_number(room_id, user_id)
 
 		text += 'You are currently in room number ' + str(room_id) + ', which has ' + str(len(users)) + ' user(s).\n'
 
-		for user in users:
-			text += '- ' + str(user) + '\n'
-
-		game = select_game(room_id)
-		player_number = select_player_number(room_id, user_id)
+		for i, user in enumerate(users):
+			if game:
+				text += str(i) + ': ' + str(user) + ' (' + str(len(game.player_cards[i])) + ' card(s))' + '\n'
+			else:
+				text += '- ' + str(user)
 
 		if game:
 			text += gameinfo(game, player_number)
@@ -262,24 +264,29 @@ def handler_text_message(update, context):
 		player_number = select_player_number(room_id, user_id)
 		# player_number = player_numbers[user_id]
 
-		try:
-			play = unoparser.parse_play(message)
-			if game.play(player_number, play):
+		if game.current_player == player_number:
 
-				update_game(room_id, game)
-				db_commit()
+			try:
+				play = unoparser.parse_play(message)
+				if game.play(player_number, play):
 
-				send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_string(play))
+					update_game(room_id, game)
+					db_commit()
 
-				# send message to player that is current
-				# context.bot.send_message(chat_id= , text='')
-				# update.message.reply_text(gameinfo(game, player_number))
+					send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_string(play))
 
-			else:
-				update.message.reply_text('That is an invalid play.')
+					# send message to player that is current
+					# context.bot.send_message(chat_id= , text='')
+					# update.message.reply_text(gameinfo(game, player_number))
 
-		except unoparser.InputParsingError as e:
-			update.message.reply_text('You are dumb! ' + str(e))
+				else:
+					update.message.reply_text('That is an invalid play.')
+
+			except unoparser.InputParsingError as e:
+				update.message.reply_text('You are dumb! ' + str(e))
+
+		else:
+			update.message.reply_text('It is not your turn! The current player is ' + str(game.current_player))
 
 	else:
 		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
