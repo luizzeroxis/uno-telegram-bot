@@ -2,6 +2,7 @@ import os
 import logging
 import psycopg2
 import pickle
+import random
 import uno, unoparser
 
 from telegram import ParseMode
@@ -65,28 +66,9 @@ def handler_help(update, context):
 
 def handler_status(update, context):
 
-	text = ''
 	user_id = update.message.from_user.id
-	room_id = get_current_room(user_id)
 
-	if room_id:
-		users = select_users_in_room(room_id)
-		game = select_game(room_id)
-		player_number = select_player_number(room_id, user_id)
-
-		text += 'You are currently in room number ' + str(room_id) + ', which has ' + str(len(users)) + ' user(s).\n'
-
-		for i, user in enumerate(users):
-			if game:
-				text += str(i) + ': ' + str(user) + ' (' + str(len(game.player_cards[i])) + ' card(s))' + '\n'
-			else:
-				text += '- ' + str(user)
-
-		if game:
-			text += gameinfo(game, player_number)
-
-	else:
-		text += 'You are currently not joined in any room.\n'
+	text = status(get_current_room(user_id), user_id)
 
 	update.message.reply_text(text)
 
@@ -173,30 +155,27 @@ def handler_leave(update, context):
 	update.message.reply_text(text)
 	send_message_to_room(context, room_id, text_to_all)
 
-player_numbers = {}
-
 def handler_begin(update, context):
 
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
 
 	if room_id:
-		users = select_users_in_room(room_id)
+		users = select_users_info_in_room(room_id)
 
 		game = uno.Game(len(users))
 		update_game(room_id, game)
 
-		global player_numbers
-		player_numbers = {}
+		numbers = list(range(len(users)))
+		random.shuffle(numbers)
 
-		for i, user in enumerate(users):
-			update_player_number(room_id, user, i)
-			# player_numbers[users[i]] = i
+		for for_player_number, for_user_id in users:
+			update_player_number(for_room_id, for_user_id, numbers.pop())
 
 		db_commit()
 
 		send_message_to_room(context, room_id, 'Game has begun')
-		send_message_to_room(context, room_id, lambda user_id: gameinfo(game, select_player_number(room_id, user_id)))
+		send_message_to_room(context, room_id, lambda user_id: status(room_id, user_id, show_room_info=False))
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>")
@@ -243,42 +222,46 @@ def handler_text_message(update, context):
 
 		game = select_game(room_id)
 		player_number = select_player_number(room_id, user_id)
-		# player_number = player_numbers[user_id]
+	
+		if game.winner == None:
 
-		if game.current_player == player_number:
+			if game.current_player == player_number:
 
-			try:
-				play = unoparser.parse_play(message)
-				play_result = game.play(player_number, play)
+				try:
+					play = unoparser.parse_play(message)
+					play_result = game.play(player_number, play)
 
-				if play_result.success:
+					if play_result.success:
 
-					update_game(room_id, game)
-					db_commit()
+						update_game(room_id, game)
+						db_commit()
 
-					send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_result_string(play_result))
+						send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_result_string(play_result))
 
-					if game.winner == None:
+						if game.winner == None:
 
-						current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+							current_user_id = select_user_id_from_player_number(room_id, game.current_player)
 
-						# send message to player that is current
-						context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + gameinfo(game, game.current_player))
+							# send message to player that is current
+							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
+
+						else:
+
+							send_message_to_room(context, room_id, str(user_id) + ' won.')
 
 					else:
 
-						send_message_to_room(context, room_id, str(user_id) + ' won.')
+						fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
+						update.message.reply_text(fail_reason)
 
-				else:
+				except unoparser.InputParsingError as e:
+					update.message.reply_text('You are dumb! ' + str(e))
 
-					fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
-					update.message.reply_text(fail_reason)
-
-			except unoparser.InputParsingError as e:
-				update.message.reply_text('You are dumb! ' + str(e))
+			else:
+				update.message.reply_text('It is not your turn! The current player is ' + str(game.current_player))
 
 		else:
-			update.message.reply_text('It is not your turn! The current player is ' + str(game.current_player))
+			update.message.reply_text(str(select_user_id_from_player_number(room_id, game.winner)) + ' already won this game! You cannot play anymore. Try /begin')
 
 	else:
 		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
@@ -309,7 +292,8 @@ def handler_error(update, context):
 
 def help_text():
 	return (
-		"*ZeroXis bot - made by* @luizeldorado*\n\n"
+		"*ZeroXis bot - made by* @luizeldorado*\n"
+		"\n"
 		"/help - Shows this\n"
 		"/status - Show what's going on\n"
 		"/new - Create new room\n"
@@ -317,7 +301,8 @@ def help_text():
 		"/leave - Leave a room\n"
 		"/begin - Begin game\n"
 		"/end - End game\n"
-		"/chat - Send a message to all in room\n\n"
+		"/chat - Send a message to all in room\n"
+		"\n"
 		"When in game, send a message to make a play.\n"
 		"d - Draw card(s)\n"
 		"p - Pass\n"
@@ -325,8 +310,9 @@ def help_text():
 		"<color> can be b, g, r, y, or nothing in kinds that have no color.\n"
 		"<kind> can be 0 to 9, r, s, +2, +4, or w\n"
 		"+4 and w have no color, but you have to specify a color after it.\n"
-		"Examples: g6, rr, +4y\n\n"
-		"Github: https://github.com/luizeldorado/uno-telegram-bot\n\n"
+		"Examples: g6, rr, +4y\n"
+		"\n"
+		"Github: https://github.com/luizeldorado/uno-telegram-bot\n"
 	)
 
 def string_to_positive_integer(string):
@@ -347,15 +333,40 @@ def send_message_to_room(context, room_id, text, not_me=None):
 				else:
 					context.bot.send_message(chat_id=user_id, text=text)
 
-def gameinfo(game, player_number):
+def status(room_id, user_id, show_room_info=True):
+
 	text = ''
 
-	text += 'Current player: (' + str(game.current_player) + ')\n'
-	text += 'Current card: ' + unoparser.card_string(game.get_current_card()) + '\n'
-	if game.current_color != game.get_current_card().color:
-		text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
+	if room_id:
+		users = select_users_info_in_room(room_id)
+		game = select_game(room_id)
 
-	text += 'Your cards: ' + unoparser.card_list_string(game.player_cards[player_number]) + '\n'
+		if show_room_info:
+			text += 'You are currently in room number ' + str(room_id) + ', which has ' + str(len(users)) + ' user(s).\n'
+
+		for player_number, user_id in users:
+			if game:
+				text += str(player_number) + ': ' + str(user_id) + ' (' + str(len(game.player_cards[player_number])) + ' card(s))'
+				if game.current_player == player_number:
+					text += ' <- Current player'
+
+			else:
+				text += '- ' + str(user_id)
+
+			text += '\n'
+
+		if game:
+
+			text += 'Current card: ' + unoparser.card_string(game.get_current_card()) + '\n'
+			if game.current_color != game.get_current_card().color:
+				text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
+
+			player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))
+
+			text += 'Your cards: ' + unoparser.card_list_string(game.player_cards[player_number]) + '\n'
+
+	else:
+		text += 'You are currently not joined in any room.\n'
 
 	return text
 
@@ -370,9 +381,12 @@ def get_current_room(user_id):
 
 	return None
 
+def select_users_info_in_room(room_id):
+	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_numbers, user_id;", (room_id,))
+	return [(row[0], row[1],) for row in cur]
+
 def select_users_in_room(room_id):
 	cur.execute("select user_id from uno_joins where room_id=%s order by user_id;", (room_id,))
-
 	return [row[0] for row in cur]
 
 def select_game(room_id):
