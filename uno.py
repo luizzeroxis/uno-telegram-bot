@@ -44,6 +44,8 @@ class Game():
 		
 		self.draw_pile += list(generate_starting_cards())
 		self.set_current_card(self.pick_random_card())
+		
+		self.do_special_effects(self.current_card)
 
 		self.draw_pile += list(generate_non_starting_cards())
 		self.shuffle_cards()
@@ -77,6 +79,29 @@ class Game():
 
 	def next_player(self):
 		self.current_player = (self.current_player + self.direction) % self.num_players
+
+	def do_special_effects(card):
+
+		# Special card effects
+		if card.kind == KIND_REVERSE:
+			self.direction = -self.direction
+
+			# When it's only 2 players, reverse works like skip
+			if self.num_players == 2:
+				self.next_player()
+
+		elif card.kind == KIND_SKIP:
+			self.next_player()
+
+		elif card.kind == KIND_DRAW_2:
+			self.draw_amount += 2
+
+		elif card.kind == KIND_DRAW_4:
+			self.draw_amount += 4
+			self.current_color = new_color
+
+		elif card.kind == KIND_WILD:
+			self.current_color = new_color
 
 	def win(self):
 		self.winner = self.current_player
@@ -144,21 +169,7 @@ class Game():
 		self.sort_player_cards(self.current_player)
 
 		# Special card effects
-		if card.kind == KIND_REVERSE:
-			self.direction = -self.direction
-
-		if card.kind == KIND_SKIP:
-			self.next_player()
-
-		if card.kind == KIND_DRAW_2:
-			self.draw_amount += 2
-
-		if card.kind == KIND_DRAW_4:
-			self.draw_amount += 4
-			self.current_color = new_color
-
-		if card.kind == KIND_WILD:
-			self.current_color = new_color
+		self.do_special_effects(card)
 
 		self.drawn_card = None
 

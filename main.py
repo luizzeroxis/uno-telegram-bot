@@ -58,29 +58,10 @@ def main():
 ## Bot handlers
 
 def handler_start(update, context):
-	update.message.reply_text("Hello there")
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN)
 
 def handler_help(update, context):
-	update.message.reply_text(
-		"*ZeroXis bot - made by @luizeldorado*\n"
-		"/help - Shows this\n"
-		"/status - Show what's going on\n"
-		"/new - Create new room\n"
-		"/join - Join a room\n"
-		"/leave - Leave a room\n"
-		"/begin - Begin game\n"
-		"/end - End game\n"
-		"/chat - Send a message to all in room\n"
-		"When in game, send a message to make a play.\n"
-		"d - Draw card(s)\n"
-		"p - Pass\n"
-		"<color><kind> - Play card of said color and kind.\n"
-		"<color> can be b, g, r, y, or nothing in kinds that have no color.\n"
-		"<kind> can be 0 to 9, r, s, +2, +4, or w\n"
-		"+4 and w have no color, but you have to specify a color after it.\n"
-		"Examples: g6, rr, +4y\n"
-		, parse_mode=ParseMode.MARKDOWN)
-	pass
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN)
 
 def handler_status(update, context):
 
@@ -325,6 +306,28 @@ def handler_error(update, context):
 		logging.exception('Uncaught')
 
 ## Helper functions
+
+def help_text():
+	return (
+		"*ZeroXis bot - made by* @luizeldorado*\n\n"
+		"/help - Shows this\n"
+		"/status - Show what's going on\n"
+		"/new - Create new room\n"
+		"/join - Join a room\n"
+		"/leave - Leave a room\n"
+		"/begin - Begin game\n"
+		"/end - End game\n"
+		"/chat - Send a message to all in room\n\n"
+		"When in game, send a message to make a play.\n"
+		"d - Draw card(s)\n"
+		"p - Pass\n"
+		"<color><kind> - Play card of said color and kind.\n"
+		"<color> can be b, g, r, y, or nothing in kinds that have no color.\n"
+		"<kind> can be 0 to 9, r, s, +2, +4, or w\n"
+		"+4 and w have no color, but you have to specify a color after it.\n"
+		"Examples: g6, rr, +4y\n\n"
+		"Github: https://github.com/luizeldorado/uno-telegram-bot\n\n"
+	)
 
 def string_to_positive_integer(string):
 	try:
