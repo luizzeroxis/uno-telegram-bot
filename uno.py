@@ -105,10 +105,10 @@ class Game():
 
 	def win(self):
 		self.winner = self.current_player
-		print(self.current_player + ' won')
+		print(str(self.current_player) + ' won')
 
 	def uno(self):
-		print(self.current_player + ' uwu')
+		print(str(self.current_player) + ' uwu')
 
 	def play(self, player, play):
 
