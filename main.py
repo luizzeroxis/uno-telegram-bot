@@ -382,7 +382,7 @@ def get_current_room(user_id):
 	return None
 
 def select_users_info_in_room(room_id):
-	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_numbers, user_id;", (room_id,))
+	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_number, user_id;", (room_id,))
 	return [(row[0], row[1],) for row in cur]
 
 def select_users_in_room(room_id):
