@@ -170,7 +170,7 @@ def handler_begin(update, context):
 		random.shuffle(numbers)
 
 		for for_player_number, for_user_id in users:
-			update_player_number(for_room_id, for_user_id, numbers.pop())
+			update_player_number(room_id, for_user_id, numbers.pop())
 
 		db_commit()
 
