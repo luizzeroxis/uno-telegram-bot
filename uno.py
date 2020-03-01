@@ -80,7 +80,7 @@ class Game():
 	def next_player(self):
 		self.current_player = (self.current_player + self.direction) % self.num_players
 
-	def do_special_effects(self, card):
+	def do_special_effects(self, card, new_color=None):
 
 		# Special card effects
 		if card.kind == KIND_REVERSE:
@@ -169,7 +169,7 @@ class Game():
 		self.sort_player_cards(self.current_player)
 
 		# Special card effects
-		self.do_special_effects(card)
+		self.do_special_effects(card, new_color)
 
 		self.drawn_card = None
 
