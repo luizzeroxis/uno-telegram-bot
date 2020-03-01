@@ -344,14 +344,14 @@ def status(room_id, user_id, show_room_info=True):
 		if show_room_info:
 			text += 'You are currently in room number ' + str(room_id) + ', which has ' + str(len(users)) + ' user(s).\n'
 
-		for player_number, user_id in users:
+		for for_player_number, for_user_id in users:
 			if game:
-				text += str(player_number) + ': ' + str(user_id) + ' (' + str(len(game.player_cards[player_number])) + ' card(s))'
-				if game.current_player == player_number:
+				text += str(for_player_number) + ': ' + str(for_user_id) + ' (' + str(len(game.player_cards[for_player_number])) + ' card(s))'
+				if game.current_player == for_player_number:
 					text += ' <- Current player'
 
 			else:
-				text += '- ' + str(user_id)
+				text += '- ' + str(for_user_id)
 
 			text += '\n'
 
