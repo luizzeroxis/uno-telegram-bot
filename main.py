@@ -258,7 +258,7 @@ def handler_text_message(update, context):
 					update.message.reply_text('You are dumb! ' + str(e))
 
 			else:
-				update.message.reply_text('It is not your turn! The current player is ' + str(game.current_player))
+				update.message.reply_text('It is not your turn! The current player is ' + str(select_user_id_from_player_number(room_id, game.current_player)))
 
 		else:
 			update.message.reply_text(str(select_user_id_from_player_number(room_id, game.winner)) + ' already won this game! You cannot play anymore. Try /begin')
