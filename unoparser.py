@@ -37,26 +37,50 @@ def card_kind_string(card_kind):
 def card_color_string(card_color):
 	return COLOR_STRINGS[card_color]
 
-def play_string(play):
+def play_result_string(play_result):
 
 	string = ''
 
-	if play.action == uno.ACTION_PLAY:
+	if play_result.action == uno.ACTION_PLAY:
 		string += 'played '
 
-		string += card_string(play.card)
+		string += card_string(play_result.card)
 
-		if play.new_color:
-			string += ' with new color ' + card_color_string(play.new_color)
+		if play_result.new_color:
+			string += ' with new color ' + card_color_string(play_result.new_color)
 		else:
 			string += '.'
 
-	elif play.action == uno.ACTION_DRAW:
-		string += 'drew cards.'
-	elif play.action == uno.ACTION_PASS:
+		if play_result.uno:
+			string += ' UNO!'
+
+	elif play_result.action == uno.ACTION_DRAW:
+		string += 'drew ' + str(play_result.num_draw) + ' card(s).'
+	elif play_result.action == uno.ACTION_PASS:
 		string += 'passed.'
 
 	return string
+
+def fail_reason_string(fail_reason):
+
+	if fail_reason == 'not_current_player':
+		return 'It is not your turn!'
+	elif fail_reason == 'doesnt_have_card':
+		return 'You do not have that card in your hand!'
+	elif fail_reason == 'not_drawn_card':
+		return 'You can only play the card you drew or pass!'
+	elif fail_reason == 'not_draw_2_or_4_or_draw':
+		return 'You can only play +2, +4 or draw when the current card is +2 or +4!'
+	elif fail_reason == 'not_draw_4_or_draw':
+		return 'You can only play +4 or draw when the current card is +4!'
+	elif fail_reason == 'card_doesnt_match':
+		return 'This card does not match the current card!'
+	elif fail_reason == 'already_drew':
+		return 'You already drew! Play that drawn card or pass.'
+	elif fail_reason == 'hasnt_drawn':
+		return 'You cannot pass withou drawing something!'
+	else:
+		return 'You failed in a way that was literally impossible. Incredible!'
 
 def parse_play(string):
 

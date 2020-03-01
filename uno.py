@@ -29,6 +29,8 @@ class Game():
 		self.starting_num_player_cards = 7
 
 		# init
+		self.winner = None
+
 		self.current_card = None
 		self.current_kind = None
 		self.current_color = None
@@ -77,6 +79,7 @@ class Game():
 		self.current_player = (self.current_player + self.direction) % self.num_players
 
 	def win(self):
+		self.winner = self.current_player
 		print(self.current_player + ' won')
 
 	def uno(self):
@@ -85,7 +88,7 @@ class Game():
 	def play(self, player, play):
 
 		if player != self.current_player:
-			return False
+			return PlayResult(fail_reason='not_current_player')
 
 		if play.action == ACTION_PLAY:
 			return self.play_card(play.card, play.new_color)
@@ -96,11 +99,15 @@ class Game():
 
 	def play_card(self, card, new_color):
 
+		# Check if player has the card
+		if card not in self.player_cards[self.current_player]:
+			return PlayResult(fail_reason='doesnt_have_card')
+
 		# When player has drawn from the pile last time
 		# Must be playing the drawn card, or pass
 		if self.drawn_card:
 			if card != self.drawn_card:
-				return False
+				return PlayResult(fail_reason='not_drawn_card')
 
 		# When draw card has been played last
 		if self.draw_amount != 0:
@@ -108,19 +115,15 @@ class Game():
 			# If +2, can add with +2 or +4
 			if self.current_kind == KIND_DRAW_2:
 				if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
-					return False
+					return PlayResult(fail_reason='not_draw_2_or_4_or_draw')
 
 			# If +4, can't add anymore, must draw or call bluff
 			if self.current_kind == KIND_DRAW_4:
-				return False
-
-		# Check if player has the card
-		if card not in self.player_cards[self.current_player]:
-			return False
+				return PlayResult(fail_reason='not_draw_4_or_draw')
 
 		# Check if card matches current card in kind or color
 		if card.color != NO_COLOR and card.kind != self.current_kind and card.color != self.current_color:
-			return False
+			return PlayResult(fail_reason='card_doesnt_match')
 
 		# Make card the current card
 		self.set_current_card(card)
@@ -133,8 +136,12 @@ class Game():
 			self.win()
 
 		# If one card in hand, say UNO
+		uno = False
 		if len(self.player_cards[self.current_player]) == 1:
-			self.uno()
+			uno = True
+
+		# Sort cards (if drawn card happens)
+		self.sort_player_cards(self.current_player)
 
 		# Special card effects
 		if card.kind == KIND_REVERSE:
@@ -157,16 +164,18 @@ class Game():
 
 		self.next_player()
 
-		return True
+		return PlayResult(success=True, action=ACTION_PLAY, card=card, new_color=new_color, uno=uno)
 
 	def play_draw(self):
 
 		# If player has drawn from the pile last time, can't do it again
 		if self.drawn_card:
-			return False
+			return PlayResult(fail_reason='already_drew')
 
 		# If draw card has been played last, pick up those cards
 		if self.draw_amount != 0:
+
+			num_draw = self.draw_amount
 
 			self.player_cards[self.current_player] += list(self.pick_cards(self.draw_amount))
 			self.sort_player_cards(self.current_player)
@@ -178,22 +187,25 @@ class Game():
 		# If not, pick only one card and continue playing
 		else:
 
+			num_draw = 1
+
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
 
-		return True
+		return PlayResult(success=True, action=ACTION_DRAW, num_draw=num_draw)
 
 	def play_pass(self):
 
 		# Can only pass if has drawn card
 		if not self.drawn_card:
-			return False
+			return PlayResult(fail_reason='hasnt_drawn')
 
 		self.drawn_card = None
+		self.sort_player_cards(self.current_player)
 
 		self.next_player()
 
-		return True
+		return PlayResult(success=True, action=ACTION_PASS)
 
 	def get_current_card(self):
 		return self.current_card
@@ -217,6 +229,10 @@ class Game():
 
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
+PlayResult = namedtuple('PlayResult',
+	['success', 'action', 'card', 'new_color', 'num_draw', 'uno', 'fail_reason'],
+	defaults=
+	(False, None, None, None, None, False, None))
 
 def make_cards(kinds, colors, amount=1):
 	for kind in kinds:

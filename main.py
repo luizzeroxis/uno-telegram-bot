@@ -268,19 +268,30 @@ def handler_text_message(update, context):
 
 			try:
 				play = unoparser.parse_play(message)
-				if game.play(player_number, play):
+				play_result = game.play(player_number, play)
+
+				if play_result.success:
 
 					update_game(room_id, game)
 					db_commit()
 
-					send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_string(play))
+					send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_result_string(play_result))
 
-					# send message to player that is current
-					# context.bot.send_message(chat_id= , text='')
-					# update.message.reply_text(gameinfo(game, player_number))
+					if game.winner == None:
+
+						current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+
+						# send message to player that is current
+						context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + gameinfo(game, player_number))
+
+					else:
+
+						send_message_to_room(context, room_id, str(user_id) + ' won.')
 
 				else:
-					update.message.reply_text('That is an invalid play.')
+
+					fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
+					update.message.reply_text(fail_reason)
 
 			except unoparser.InputParsingError as e:
 				update.message.reply_text('You are dumb! ' + str(e))
@@ -369,6 +380,10 @@ def select_game(room_id):
 
 def select_player_number(room_id, user_id):
 	cur.execute("select player_number from uno_joins where room_id=%s and user_id=%s limit 1;", (room_id, user_id))
+	return cur.fetchone()[0]
+
+def select_user_id_from_player_number(room_id, player_number):
+	cur.execute("select user_id from uno_joins where room_id=%s and player_number=%s limit 1;", (room_id, player_number))
 	return cur.fetchone()[0]
 
 def check_room_empty(room_id):
