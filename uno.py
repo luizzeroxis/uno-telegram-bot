@@ -44,7 +44,7 @@ class Game():
 		
 		self.draw_pile += list(generate_starting_cards())
 		self.set_current_card(self.pick_random_card())
-		
+
 		self.do_special_effects(self.current_card)
 
 		self.draw_pile += list(generate_non_starting_cards())
@@ -80,7 +80,7 @@ class Game():
 	def next_player(self):
 		self.current_player = (self.current_player + self.direction) % self.num_players
 
-	def do_special_effects(card):
+	def do_special_effects(self, card):
 
 		# Special card effects
 		if card.kind == KIND_REVERSE:
