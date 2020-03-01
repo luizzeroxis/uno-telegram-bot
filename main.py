@@ -263,7 +263,7 @@ def handler_text_message(update, context):
 						current_user_id = select_user_id_from_player_number(room_id, game.current_player)
 
 						# send message to player that is current
-						context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + gameinfo(game, player_number))
+						context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + gameinfo(game, game.current_player))
 
 					else:
 

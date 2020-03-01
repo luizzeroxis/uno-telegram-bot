@@ -48,8 +48,8 @@ def play_result_string(play_result):
 
 		if play_result.new_color:
 			string += ' with new color ' + card_color_string(play_result.new_color)
-		else:
-			string += '.'
+		
+		string += '.'
 
 		if play_result.uno:
 			string += ' UNO!'
