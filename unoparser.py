@@ -78,7 +78,7 @@ def fail_reason_string(fail_reason):
 	elif fail_reason == 'already_drew':
 		return 'You already drew! Play that drawn card or pass.'
 	elif fail_reason == 'hasnt_drawn':
-		return 'You cannot pass withou drawing something!'
+		return 'You cannot pass without drawing something!'
 	else:
 		return 'You failed in a way that was literally impossible. Incredible!'
 
