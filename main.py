@@ -401,7 +401,14 @@ def status(room_id, user_id, show_room_info=True):
 
 			player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))
 
-			text += 'Your cards: ' + unoparser.card_list_string(game.player_cards[player_number]) + '\n'
+			text += 'Your cards: '
+			
+			if len(game.player_cards[player_number]) != 0:
+				text += unoparser.card_list_string(game.player_cards[player_number])
+			else:
+				text += 'None!'
+
+			text += '\n'
 
 	else:
 		text += 'You are currently not joined in any room.\n'
