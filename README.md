@@ -1,5 +1,5 @@
-
 # uno-telegram-bot
+
 A UNO Telegram bot, currently on [@zeroxisbot](https://t.me/zeroxisbot). Made to be hosted on Heroku.
 
 ## How to play
@@ -9,13 +9,17 @@ With this bot, you can create and join rooms with other people and play UNO with
 ### Commands
 
 **/new** - Creates a new room.
+
 **/join** \<room_number\> - Joins a room with that number.
+
 **/leave** - Leaves the current room. If no one is left in the room, it will self destruct.
 
 **/begin** - Actually start the game.
+
 **/end** - End the current game, losing all its data.
 
 **/status** - Show information about the current room and the game if it began.
+
 **/chat** \<message\> - Send a message to all other people in the room.
 
 When in game, send a message with the following commands to play.
