@@ -292,7 +292,7 @@ def handler_error(update, context):
 
 def help_text():
 	return (
-		"*ZeroXis bot - made by* @luizeldorado*\n"
+		"*ZeroXis bot - made by* @luizeldorado\n"
 		"\n"
 		"/help - Shows this\n"
 		"/status - Show what's going on\n"
