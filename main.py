@@ -345,13 +345,14 @@ def status(room_id, user_id, show_room_info=True):
 
 		if show_room_info:
 			num_users = len(users)
-			text += 'You are currently in room number ' + str(room_id)
-				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n'
+			text += ('You are currently in room number ' + str(room_id)
+				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n')
 
 		for for_player_number, for_user_id in users:
 			if game:
 				num_cards = len(game.player_cards[for_player_number])
-				text += str(for_player_number) + ': ' + str(for_user_id) + ' (' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards') + ')'
+				text += (str(for_player_number) + ': ' + str(for_user_id)
+					+ ' (' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards') + ')')
 
 				if game.winner == None and game.current_player == for_player_number:
 					text += ' <- Current player'
