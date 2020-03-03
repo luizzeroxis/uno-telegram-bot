@@ -1,5 +1,7 @@
 import uno
 
+from plural import plural
+
 KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'R', 'S', '+2', '+4', 'W']
 COLOR_STRINGS = ['', 'b', 'g', 'r', 'y']
 
@@ -55,7 +57,7 @@ def play_result_string(play_result):
 			string += ' UNO!'
 
 	elif play_result.action == uno.ACTION_DRAW:
-		string += 'drew ' + str(play_result.num_draw) + ' card(s).'
+		string += 'drew ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
 	elif play_result.action == uno.ACTION_PASS:
 		string += 'passed.'
 

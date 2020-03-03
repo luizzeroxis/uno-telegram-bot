@@ -5,6 +5,8 @@ import pickle
 import random
 import uno, unoparser
 
+from plural import plural
+
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError, Unauthorized, BadRequest,  TimedOut, ChatMigrated, NetworkError
@@ -255,7 +257,7 @@ def handler_text_message(update, context):
 						update.message.reply_text(fail_reason)
 
 				except unoparser.InputParsingError as e:
-					update.message.reply_text('You are dumb! ' + str(e))
+					update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
 
 			else:
 				update.message.reply_text('It is not your turn! The current player is ' + str(select_user_id_from_player_number(room_id, game.current_player)))
@@ -342,11 +344,14 @@ def status(room_id, user_id, show_room_info=True):
 		game = select_game(room_id)
 
 		if show_room_info:
-			text += 'You are currently in room number ' + str(room_id) + ', which has ' + str(len(users)) + ' user(s).\n'
+			num_users = len(users)
+			text += 'You are currently in room number ' + str(room_id)
+				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n'
 
 		for for_player_number, for_user_id in users:
 			if game:
-				text += str(for_player_number) + ': ' + str(for_user_id) + ' (' + str(len(game.player_cards[for_player_number])) + ' card(s))'
+				num_cards = len(game.player_cards[for_player_number])
+				text += str(for_player_number) + ': ' + str(for_user_id) + ' (' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards') + ')'
 
 				if game.winner == None and game.current_player == for_player_number:
 					text += ' <- Current player'
