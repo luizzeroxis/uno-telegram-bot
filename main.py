@@ -61,10 +61,10 @@ def main():
 ## Bot handlers
 
 def handler_start(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN)
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 def handler_help(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN)
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 def handler_status(update, context):
 
@@ -72,7 +72,7 @@ def handler_status(update, context):
 
 	text = status(get_current_room(user_id), user_id)
 
-	update.message.reply_text(text)
+	send_message_to_user(context, user_id, text)
 
 def handler_new(update, context):
 	
@@ -108,6 +108,7 @@ def handler_join(update, context):
 
 			current_room_id = get_current_room(user_id)
 			room_exists = check_room_exists(room_id)
+			game = select_game(room_id)
 
 			if current_room_id:
 				text += 'You are already in room ' + str(current_room_id) + '! You must /leave that room first.\n'
@@ -115,7 +116,10 @@ def handler_join(update, context):
 			if not room_exists:
 				text += 'This room does not exist!\n'
 
-			if not current_room_id and room_exists:
+			if game:
+				text += 'A game is being played in this room! They must /end it before anyone can join.\n'
+
+			if not current_room_id and room_exists and not game:
 				insert_user_to_room(room_id, user_id)
 				db_commit()
 
@@ -138,18 +142,26 @@ def handler_leave(update, context):
 	room_id = get_current_room(user_id)
 
 	if room_id:
-		delete_user_from_room(user_id)
 
-		text += 'You have left room number '+str(room_id)+'.\n'
+		game = select_game(room_id)
 
-		if check_room_empty(room_id):
-			delete_room(room_id)
+		if not game:
 
-			text += 'The room was empty with your departure, so it has been deleted.\n'
+			delete_user_from_room(user_id)
+
+			text += 'You have left room number '+str(room_id)+'.\n'
+
+			if check_room_empty(room_id):
+				delete_room(room_id)
+
+				text += 'The room was empty with your departure, so it has been deleted.\n'
+			else:
+				text_to_all += str(user_id) + ' left the room.\n'
+
+			db_commit()
+
 		else:
-			text_to_all += str(user_id) + ' left the room.\n'
-
-		db_commit()
+			text += 'A game is being played in this room! Someone must /end it before anyone can leave.\n'
 		
 	else:
 		text += 'You are not in any room right now!\n'
@@ -159,11 +171,18 @@ def handler_leave(update, context):
 
 def handler_begin(update, context):
 
+	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
 
 	if room_id:
 		users = select_users_info_in_room(room_id)
+
+		game = select_game(room_id)
+		if not game:
+			text_to_all += 'Game has begun'
+		else:
+			text_to_all += 'Game has rebegun'
 
 		game = uno.Game(len(users))
 		update_game(room_id, game)
@@ -176,7 +195,7 @@ def handler_begin(update, context):
 
 		db_commit()
 
-		send_message_to_room(context, room_id, 'Game has begun')
+		send_message_to_room(context, room_id, text_to_all)
 		send_message_to_room(context, room_id, lambda user_id: status(room_id, user_id, show_room_info=False))
 
 	else:
@@ -189,10 +208,16 @@ def handler_end(update, context):
 
 	if room_id:
 
-		update_game(room_id, None)
-		db_commit()
+		game = select_game(room_id)
 
-		send_message_to_room(context, room_id, 'Game has ended')
+		if game:
+			update_game(room_id, None)
+			db_commit()
+
+			send_message_to_room(context, room_id, 'Game has ended')
+
+		else:
+			update.message.reply_text("But there is no game going on!")
 
 	else:
 		update.message.reply_text("You cannot end the game if you are not in a room! Try /new or /join <room number>")
@@ -325,6 +350,10 @@ def string_to_positive_integer(string):
 
 	if number >= 0:
 		return number
+
+def send_message_to_user(context, user_id, text):
+	if text:
+		context.bot.send_message(chat_id=user_id, text=text)
 
 def send_message_to_room(context, room_id, text, not_me=None):
 	if text and room_id:
