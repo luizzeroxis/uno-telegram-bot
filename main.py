@@ -347,8 +347,11 @@ def status(room_id, user_id, show_room_info=True):
 		for for_player_number, for_user_id in users:
 			if game:
 				text += str(for_player_number) + ': ' + str(for_user_id) + ' (' + str(len(game.player_cards[for_player_number])) + ' card(s))'
-				if game.current_player == for_player_number:
+
+				if game.winner == None and game.current_player == for_player_number:
 					text += ' <- Current player'
+				elif game.winner == for_player_number:
+					text += ' <- Winner'
 
 			else:
 				text += '- ' + str(for_user_id)
