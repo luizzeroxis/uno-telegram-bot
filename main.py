@@ -458,7 +458,10 @@ def select_game(room_id):
 	cur.execute("select game_pickle from uno_rooms where id=%s limit 1;", (room_id,))
 	result = cur.fetchone()[0]
 
-	return pickle.loads(result)
+	if result:
+		return pickle.loads(result)
+	else:
+		return None
 
 def select_player_number(room_id, user_id):
 	cur.execute("select player_number from uno_joins where room_id=%s and user_id=%s limit 1;", (room_id, user_id))
