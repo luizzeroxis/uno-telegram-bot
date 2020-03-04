@@ -22,7 +22,7 @@ def main():
 	PORT = os.environ.get('PORT')
 
 	# Enable logging
-	logging.basicConfig(level=logging.INFO)
+	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 	logger = logging.getLogger(__name__)
 
 	## Database setup
@@ -313,6 +313,26 @@ def handler_error(update, context):
 		logging.exception('Uncaught')
 	except TelegramError:
 		# handle all other telegram related errors
+		logging.exception('Uncaught')
+	except Exception as e:
+		send_message_to_user(context, update.message.from_user.id, random.choice((
+			"Please, you are annoying me",
+			"Leave me alone at least for one second",
+			"I just don't want to do it now",
+			"Will I be able to finally relax one day?",
+			"Could you just don't?",
+			"I don't want to work right now. You can complain to the admin if you want.",
+			"Don't you have anything better to do?",
+			"You could be living your life but you are texting a lifeless bot. Nice.",
+			"I'm not in the mood. Maybe later.",
+			"Excuse me for one second, I have to do something REALLY important.",
+			"Sure, I'm going to do that.",
+			"Remind me later.",
+			"I can't listen. I'm out of phone signal. Bye.",
+			"Sorry, my cat is suffering from dysentery now.",
+			"This action requires Telegram Gold.",
+			"no u",
+			)))
 		logging.exception('Uncaught')
 
 ## Helper functions
