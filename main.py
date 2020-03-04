@@ -185,9 +185,9 @@ def handler_begin(update, context):
 
 		game = select_game(room_id)
 		if not game:
-			text_to_all += 'Game has begun'
+			text_to_all += str(user_id) + ' has begun the game'
 		else:
-			text_to_all += 'Game has rebegun'
+			text_to_all += str(user_id) + ' has rebegun the game'
 
 		game = uno.Game(len(users))
 		update_game(room_id, game)
@@ -219,7 +219,7 @@ def handler_end(update, context):
 			update_game(room_id, None)
 			db_commit()
 
-			send_message_to_room(context, room_id, 'Game has ended')
+			send_message_to_room(context, room_id, str(user_id) + ' has ended the game')
 
 		else:
 			update.message.reply_text("But there is no game going on!")
