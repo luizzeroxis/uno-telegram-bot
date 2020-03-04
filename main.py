@@ -244,7 +244,7 @@ def handler_chat(update, context):
 def handler_error(update, context):
 
 	user_id = update.message.from_user.id
-	send_message(context, user_id, get_error_message())
+	send_message_to_user(context, user_id, get_error_message())
 
 def handler_text_message(update, context):
 	
