@@ -111,13 +111,15 @@ def handler_join(update, context):
 
 			current_room_id = get_current_room(user_id)
 			room_exists = check_room_exists(room_id)
-			game = select_game(room_id)
+			game = None
 
 			if current_room_id:
 				text += 'You are already in room ' + str(current_room_id) + '! You must /leave that room first.\n'
 
 			if not room_exists:
 				text += 'This room does not exist!\n'
+			else:
+				game = select_game(room_id)
 
 			if game:
 				text += 'A game is being played in this room! They must /end it before anyone can join.\n'
