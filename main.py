@@ -48,10 +48,13 @@ def main():
 
 	dp.add_handler(CommandHandler('chat', handler_chat))
 
+	# secret
+	dp.add_handler(CommandHandler('error', handler_error))
+
 	# Message handlers
 	dp.add_handler(MessageHandler(Filters.text & Filters.private, handler_text_message))
 
-	dp.add_error_handler(handler_error)
+	dp.add_error_handler(error_handler)
 
 	# Start the webhook
 	updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TELEGRAM_BOT_TOKEN, clean=True, allowed_updates=["message"])
@@ -238,6 +241,11 @@ def handler_chat(update, context):
 
 	send_message_to_room(context, room_id, text_to_all, not_me=user_id)
 
+def handler_error(update, context):
+
+	user_id = update.message.from_user.id
+	send_message(context, user_id, get_error_message())
+
 def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
@@ -293,7 +301,7 @@ def handler_text_message(update, context):
 	else:
 		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
 
-def handler_error(update, context):
+def error_handler(update, context):
 	try:
 		raise context.error
 	except Unauthorized:
@@ -315,24 +323,7 @@ def handler_error(update, context):
 		# handle all other telegram related errors
 		logging.exception('Uncaught')
 	except Exception as e:
-		send_message_to_user(context, update.message.from_user.id, random.choice((
-			"Please, you are annoying me",
-			"Leave me alone at least for one second",
-			"I just don't want to do it now",
-			"Will I be able to finally relax one day?",
-			"Could you just don't?",
-			"I don't want to work right now. You can complain to the admin if you want.",
-			"Don't you have anything better to do?",
-			"You could be living your life but you are texting a lifeless bot. Nice.",
-			"I'm not in the mood. Maybe later.",
-			"Excuse me for one second, I have to do something REALLY important.",
-			"Sure, I'm going to do that.",
-			"Remind me later.",
-			"I can't listen. I'm out of phone signal. Bye.",
-			"Sorry, my cat is suffering from dysentery now.",
-			"This action requires Telegram Gold.",
-			"no u",
-			)))
+		send_message_to_user(context, update.message.from_user.id, get_error_message())
 		logging.exception('Uncaught')
 
 ## Helper functions
@@ -434,6 +425,26 @@ def status(room_id, user_id, show_room_info=True):
 		text += 'You are currently not joined in any room.\n'
 
 	return text
+
+def get_error_message():
+	return random.choice((
+		"Please, you are annoying me",
+		"Leave me alone at least for one second",
+		"I just don't want to do it now",
+		"Will I be able to finally relax one day?",
+		"Could you just don't?",
+		"I don't want to work right now. You can complain to the admin if you want.",
+		"Don't you have anything better to do?",
+		"You could be living your life but you are texting a lifeless bot. Nice.",
+		"I'm not in the mood. Maybe later.",
+		"Excuse me for one second, I have to do something REALLY important.",
+		"Sure, I'm going to do that.",
+		"Remind me later.",
+		"I can't listen. I'm out of phone signal. Bye.",
+		"Sorry, my cat is suffering from dysentery now.",
+		"This action requires Telegram Gold.",
+		"no u",
+	))
 
 ## Database functions
 
