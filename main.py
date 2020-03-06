@@ -370,7 +370,7 @@ def send_message_to_user(context, user_id, text):
 
 def send_message_to_room(context, room_id, text, not_me=None):
 	if text and room_id:
-		for user_id in select_users_in_room(room_id):
+		for user_id in select_users_ids_in_room(room_id):
 			if user_id != not_me:
 				if callable(text):
 					context.bot.send_message(chat_id=user_id, text=text(user_id))
@@ -463,9 +463,17 @@ def select_users_info_in_room(room_id):
 	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_number, user_id;", (room_id,))
 	return [(row[0], row[1],) for row in cur]
 
-def select_users_in_room(room_id):
+def select_users_ids_in_room(room_id):
 	cur.execute("select user_id from uno_joins where room_id=%s order by user_id;", (room_id,))
 	return [row[0] for row in cur]
+
+def select_player_number(room_id, user_id):
+	cur.execute("select player_number from uno_joins where room_id=%s and user_id=%s limit 1;", (room_id, user_id))
+	return cur.fetchone()[0]
+
+def select_user_id_from_player_number(room_id, player_number):
+	cur.execute("select user_id from uno_joins where room_id=%s and player_number=%s limit 1;", (room_id, player_number))
+	return cur.fetchone()[0]
 
 def select_game(room_id):
 	cur.execute("select game_pickle from uno_rooms where id=%s limit 1;", (room_id,))
@@ -475,14 +483,6 @@ def select_game(room_id):
 		return pickle.loads(result)
 	else:
 		return None
-
-def select_player_number(room_id, user_id):
-	cur.execute("select player_number from uno_joins where room_id=%s and user_id=%s limit 1;", (room_id, user_id))
-	return cur.fetchone()[0]
-
-def select_user_id_from_player_number(room_id, player_number):
-	cur.execute("select user_id from uno_joins where room_id=%s and player_number=%s limit 1;", (room_id, player_number))
-	return cur.fetchone()[0]
 
 def check_room_empty(room_id):
 	cur.execute("select room_id from uno_joins where room_id=%s limit 1;", (room_id,))

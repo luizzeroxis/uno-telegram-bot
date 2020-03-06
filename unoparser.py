@@ -8,6 +8,7 @@ COLOR_STRINGS = ['', 'b', 'g', 'r', 'y']
 ACTION_CMD_STRINGS = {
 	'd': uno.ACTION_DRAW,
 	'p': uno.ACTION_PASS,
+	'c': uno.ACTION_CALL_BLUFF,
 }
 
 KIND_CMD_STRINGS = {
@@ -61,6 +62,14 @@ def play_result_string(play_result):
 	elif play_result.action == uno.ACTION_PASS:
 		string += 'passed.'
 
+	elif play_result.action == uno.ACTION_CALL_BLUFF:
+		string += 'called last player\'s bluff... '
+
+		if play_result.bluffed:
+			string += 'and it was a bluff. Last player received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
+		else:
+			string += 'and it was not a bluff. Current player received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
+
 	return string
 
 def fail_reason_string(fail_reason):
@@ -81,6 +90,8 @@ def fail_reason_string(fail_reason):
 		return 'You already drew! Play that drawn card or pass.'
 	elif fail_reason == 'hasnt_drawn':
 		return 'You cannot pass without drawing something!'
+	elif fail_reason == 'last_not_draw_4':
+		return 'You cannot call a bluff if the previous player has not played a +4!'
 	else:
 		return 'You failed in a way that was literally impossible. Incredible!'
 

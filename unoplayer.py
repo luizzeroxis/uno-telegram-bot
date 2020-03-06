@@ -1,112 +1,71 @@
 import uno
+import unoparser
+from unoparser import InputParsingError
+
+from plural import plural
+
+game = None
 
 def main():
 
 	num_players = ask_input("Number of players: ", parse_pos_int)
 
+	global game
 	game = uno.Game(num_players)
 
-	show_status(game)
+	status(game)
 
 	while True:
 		play = ask_input(str(game.current_player) + "> ", parse_play)
 
-		if game.play(game.current_player, play):
-			show_status(game)
+		play_result = game.play(game.current_player, play)
+
+		if play_result.success:
+			print(unoparser.play_result_string(play_result))
+			status(game)
 		else:
-			print('Invalid move!')
+			print(unoparser.fail_reason_string(play_result.fail_reason))
 
-def show_status(game):
+def status(game):
 
-	print('--')
-	print('Players:')
-	for player, cards in game.get_num_players_cards():
-		print(str(player) + ': ' + str(cards) + ' cards')
+	text = ''
 
-	print('Current card: ' + card_string(game.get_current_card()))
+	for for_player_number in range(game.num_players):
+
+		num_cards = len(game.player_cards[for_player_number])
+		text += str(for_player_number) + ': ' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards')
+
+		if game.winner == None and game.current_player == for_player_number:
+			text += ' <- Current player'
+		elif game.winner == for_player_number:
+			text += ' <- Winner'
+
+		text += '\n'
+
+	text += 'Current card: ' + unoparser.card_string(game.get_current_card()) + '\n'
 	if game.current_color != game.get_current_card().color:
-		print('Chosen color: ' + card_color_string(game.current_color))
+		text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
 
-	print('Your cards: ' + card_list_string(game.get_current_player_cards()))
+	player_number = game.current_player
 
-KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Reverse', 'Skip', '+2', '+4', 'Wild']
-COLOR_STRINGS = ['', 'Blue', 'Green', 'Red', 'Yellow']
+	text += 'Your cards: '
+	
+	if len(game.player_cards[player_number]) != 0:
+		text += unoparser.card_list_string(game.player_cards[player_number])
+	else:
+		text += 'None!'
 
-ACTION_CMD_STRINGS = {
-	'd': uno.ACTION_DRAW,
-	'p': uno.ACTION_PASS,
-}
+	text += '\n'
 
-KIND_CMD_STRINGS = {
-	'0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
-	'5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-	'r': uno.KIND_REVERSE,
-	's': uno.KIND_SKIP,
-	'+2': uno.KIND_DRAW_2,
-	'+4': uno.KIND_DRAW_4,
-	'w': uno.KIND_WILD,
-}
+	print(text)
 
-COLOR_CMD_STRINGS = {
-	'b': uno.COLOR_BLUE,
-	'g': uno.COLOR_GREEN,
-	'r': uno.COLOR_RED,
-	'y': uno.COLOR_YELLOW,
-}
-
-def card_string(card):
-	return ' '.join(x for x in [card_color_string(card.color), card_kind_string(card.kind)] if x)
-
-def card_list_string(card_list):
-	return ", ".join([card_string(card) for card in card_list])
-
-def card_kind_string(card_kind):
-	return KIND_STRINGS[card_kind]
-
-def card_color_string(card_color):
-	return COLOR_STRINGS[card_color]
+	return text
 
 def parse_pos_int(string):
 	try:
 		return int(string)
 	except ValueError as e:
 		raise InputParsingError('That is not a positive integer number!')
-
-def parse_play(string):
-
-	parser = Parser(string)
-
-	parser.clear_whitespace()
-	action = parser.check_dict(ACTION_CMD_STRINGS)
-
-	if action == None:
-		color = parser.check_dict(COLOR_CMD_STRINGS)
-
-		parser.clear_whitespace()
-		kind = parser.check_dict(KIND_CMD_STRINGS)
-
-		new_color = None
-
-		if kind in [uno.KIND_DRAW_4, uno.KIND_WILD]:
-			if color == None:
-				parser.clear_whitespace()
-				new_color = parser.check_dict(COLOR_CMD_STRINGS)
-
-				if new_color == None:
-					raise InputParsingError('You did not choose a new color!')
-			else:
-				new_color = color
-
-			color = uno.NO_COLOR
-
-		else:
-			if kind == None or color == None:
-				raise InputParsingError('You did not choose a card or action!')
-
-		return uno.Play(uno.ACTION_PLAY, uno.Card(kind, color), new_color)
-
-	else:
-		return uno.Play(action, None, None)
 
 def ask_input(text, return_fun=lambda x: x):
 
@@ -117,31 +76,18 @@ def ask_input(text, return_fun=lambda x: x):
 		except InputParsingError as e:
 			print(e)
 
-class InputParsingError(Exception):
-	pass
+def parse_play(message):
 
-class Parser():
+	global game
 
-	def __init__(self, string):
-		self.string = string
-		self.pos = 0
+	if message == 'give +4':
+		game.player_cards[game.current_player] += [uno.Card(uno.KIND_DRAW_4, uno.NO_COLOR)]
+		raise InputParsingError('CHEAT: GIVE +4')
+	if message == 'clear cards':
+		game.player_cards[game.current_player] = []
+		raise InputParsingError('CHEAT: CLEAR CARDS')
 
-	def ended(self):
-		return self.pos >= len(self.string)
-
-	def clear_whitespace(self):
-		while not self.ended() and self.string[self.pos] == ' ':
-			self.pos += 1
-
-	def check_dict(self, dictionary, none=None):
-
-		if not self.ended():
-			for find_str, value in dictionary.items():
-				if self.string[self.pos : self.pos + len(find_str)] == find_str:
-					self.pos += len(find_str)
-					return value
-
-		return none
+	return unoparser.parse_play(message)
 
 if __name__ == "__main__":
 	main()

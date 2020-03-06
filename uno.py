@@ -18,7 +18,7 @@ KIND_WILD = 14
 ACTION_PLAY = 'play'
 ACTION_DRAW = 'draw'
 ACTION_PASS = 'pass'
-# ACTION_CALL_BLUFF = 'callbluff'
+ACTION_CALL_BLUFF = 'callbluff'
 
 class Game():
 
@@ -39,6 +39,8 @@ class Game():
 		self.direction = 1
 		self.drawn_card = None
 		self.draw_amount = 0
+		self.can_call_bluff = False
+		self.previous_bluffed = None
 
 		self.draw_pile = []
 		
@@ -78,6 +80,7 @@ class Game():
 		self.player_cards[player].sort(key=lambda card: (card.color, card.kind, ))
 
 	def next_player(self):
+		self.previous_player = self.current_player
 		self.current_player = (self.current_player + self.direction) % self.num_players
 
 	def do_special_effects(self, card, new_color=None):
@@ -121,6 +124,8 @@ class Game():
 			return self.play_draw()
 		elif play.action == ACTION_PASS:
 			return self.play_pass()
+		elif play.action == ACTION_CALL_BLUFF:
+			return self.play_call_bluff()
 
 	def play_card(self, card, new_color):
 
@@ -149,6 +154,21 @@ class Game():
 		# Check if card matches current card in kind or color
 		if card.color != NO_COLOR and card.kind != self.current_kind and card.color != self.current_color:
 			return PlayResult(fail_reason='card_doesnt_match')
+
+		# Clear previous bluff
+		self.can_call_bluff = False
+
+		# Check bluff
+		if card.kind == KIND_DRAW_4:
+
+			self.can_call_bluff = True
+			self.previous_bluffed = False
+
+			# Check if any card could have been played
+			for player_card in self.player_cards[self.current_player]:
+				if player_card.color == self.current_color:
+					self.previous_bluffed = True
+					break
 
 		# Make card the current card
 		self.set_current_card(card)
@@ -203,6 +223,9 @@ class Game():
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
 
+		# Clear previous bluff
+		self.can_call_bluff = False
+
 		return PlayResult(success=True, action=ACTION_DRAW, num_draw=num_draw)
 
 	def play_pass(self):
@@ -216,7 +239,41 @@ class Game():
 
 		self.next_player()
 
+		# Clear previous bluff
+		self.can_call_bluff = False
+
 		return PlayResult(success=True, action=ACTION_PASS)
+
+	def play_call_bluff(self):
+
+		if not self.can_call_bluff:
+			return PlayResult(fail_reason='last_not_draw_4')
+
+		# If bluffed, previous player has to draw 4 cards
+		if self.previous_bluffed:
+
+			num_draw = 4
+
+			self.player_cards[self.previous_player] += list(self.pick_cards(num_draw))
+			self.sort_player_cards(self.previous_player)
+
+		# If not bluffed, current player has to draw 6 cards
+		else:
+
+			num_draw = 6
+
+			self.player_cards[self.current_player] += list(self.pick_cards(num_draw))
+			self.sort_player_cards(self.current_player)
+
+		# Clear +4 effect
+		self.draw_amount = 0
+
+		# Clear previous bluff
+		self.can_call_bluff = False
+
+		self.next_player()
+
+		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw)
 
 	def get_current_card(self):
 		return self.current_card
@@ -241,9 +298,9 @@ class Game():
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
 PlayResult = namedtuple('PlayResult',
-	['success', 'action', 'card', 'new_color', 'num_draw', 'uno', 'fail_reason'],
+	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'uno', 'fail_reason'],
 	defaults=
-	(False, None, None, None, None, False, None))
+	(False, None, None, None, None, None, False, None))
 
 def make_cards(kinds, colors, amount=1):
 	for kind in kinds:
