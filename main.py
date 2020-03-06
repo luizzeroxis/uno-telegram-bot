@@ -373,9 +373,9 @@ def send_message_to_room(context, room_id, text, not_me=None):
 		for user_id in select_users_ids_in_room(room_id):
 			if user_id != not_me:
 				if callable(text):
-					context.bot.send_message(chat_id=user_id, text=text(user_id))
+					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
-					context.bot.send_message(chat_id=user_id, text=text)
+					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
 
 def status(room_id, user_id, show_room_info=True):
 
