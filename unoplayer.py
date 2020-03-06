@@ -11,7 +11,8 @@ def main():
 	num_players = ask_input("Number of players: ", parse_pos_int)
 
 	global game
-	game = uno.Game(num_players)
+	game = uno.Game()
+	game.begin(num_players)
 
 	status(game)
 

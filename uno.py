@@ -22,41 +22,59 @@ ACTION_CALL_BLUFF = 'callbluff'
 
 class Game():
 
-	def __init__(self, num_players):
-		self.num_players = num_players
+	def __init__(self):
 
 		# config
 		self.starting_num_player_cards = 7
 
 		# init
-		self.winner = None
+		self.reset()
 
+	def reset(self):
+
+		self.num_players = 0
+		self.winner = None
 		self.current_card = None
 		self.current_kind = None
 		self.current_color = None
-
 		self.current_player = 0
 		self.direction = 1
 		self.drawn_card = None
 		self.draw_amount = 0
 		self.can_call_bluff = False
 		self.previous_bluffed = None
-
 		self.draw_pile = []
-		
-		self.draw_pile += list(generate_starting_cards())
-		self.set_current_card(self.pick_random_card())
-
-		self.do_special_effects(self.current_card)
-
-		self.draw_pile += list(generate_non_starting_cards())
-		self.shuffle_cards()
-
 		self.player_cards = []
 
+	def begin(self, num_players):
+
+		self.reset()
+
+		self.num_players = num_players
+		
+		# Generate draw pile cards, with only allowed start cards
+		self.draw_pile += list(generate_starting_cards())
+		# Pick starting card
+		self.set_current_card(self.pick_random_card())
+
+		# Do special effects of starting card
+		self.do_special_effects(self.current_card)
+
+		# Generate rest of draw pile cards (cards not allowed to start with)
+		self.draw_pile += list(generate_non_starting_cards())
+		# Randomize cards
+		self.shuffle_cards()
+
+		# Pick player cards
 		for player in range(num_players):
 			self.player_cards.append(list(self.pick_cards(self.starting_num_player_cards)))
 			self.sort_player_cards(player)
+
+	def load(self):
+		pass
+
+	def save(self):
+		pass
 
 	def set_current_card(self, card):
 		self.current_card = card

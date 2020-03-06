@@ -3,7 +3,11 @@ import uno
 from plural import plural
 
 KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'R', 'S', '+2', '+4', 'W']
-COLOR_STRINGS = ['', 'b', 'g', 'r', 'y']
+
+COLOR_STRINGS_SHORT = ['', 'b', 'g', 'r', 'y']
+COLOR_STRINGS_EMOJI = ['⬛', '🟦', '🟩', '🟥', '🟨']
+
+COLOR_STRINGS = COLOR_STRINGS_SHORT
 
 ACTION_CMD_STRINGS = {
 	'd': uno.ACTION_DRAW,

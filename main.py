@@ -189,7 +189,9 @@ def handler_begin(update, context):
 		else:
 			text_to_all += str(user_id) + ' has rebegun the game'
 
-		game = uno.Game(len(users))
+		game = uno.Game()
+		game.begin(len(users))
+
 		update_game(room_id, game)
 
 		numbers = list(range(len(users)))
@@ -248,10 +250,23 @@ def handler_error(update, context):
 	user_id = update.message.from_user.id
 	send_message_to_user(context, user_id, get_error_message())
 
+def get_and_apply_user_settings(user_id):
+
+	settings = get_user_settings(user_id)
+
+	if settings['style'] == 'short':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_SHORT
+	elif settings['style'] == 'emoji':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_EMOJI
+
+	return settings
+
 def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
+
+	get_and_apply_user_settings(user_id)
 
 	if room_id:
 
@@ -273,7 +288,7 @@ def handler_text_message(update, context):
 						update_game(room_id, game)
 						db_commit()
 
-						send_message_to_room(context, room_id, str(user_id) + ' ' + unoparser.play_result_string(play_result))
+						send_message_to_room(context, room_id, lambda x: str(user_id) + ' ' + unoparser.play_result_string(play_result))
 
 						if game.winner == None:
 
@@ -284,7 +299,7 @@ def handler_text_message(update, context):
 
 						else:
 
-							send_message_to_room(context, room_id, str(user_id) + ' won.')
+							send_message_to_room(context, room_id, lambda x: str(user_id) + ' won.')
 
 					else:
 
@@ -379,6 +394,8 @@ def send_message_to_room(context, room_id, text, not_me=None):
 
 def status(room_id, user_id, show_room_info=True):
 
+	get_and_apply_user_settings(user_id)
+
 	text = ''
 
 	if room_id:
@@ -458,6 +475,12 @@ def get_current_room(user_id):
 		return result[0]
 
 	return None
+
+def get_user_settings(user_id):
+	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
+	result = cur.fetchone()
+
+	return dict(zip(cur.description, result))
 
 def select_users_info_in_room(room_id):
 	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_number, user_id;", (room_id,))
