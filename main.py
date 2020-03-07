@@ -536,7 +536,7 @@ def get_user_settings(user_id):
 	columns = (description.name for description in cur.description)
 
 	if result == None:
-		result = (None, ) * len(columns)
+		result = (None, ) * len(cur.description)
 
 	return dict(zip(columns, result))
 
