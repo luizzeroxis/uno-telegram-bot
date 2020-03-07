@@ -1,6 +1,9 @@
 import os
 import logging
+
 import psycopg2
+from psycopg2 import sql
+
 import pickle
 import random
 import uno, unoparser
@@ -610,10 +613,10 @@ def update_player_number(room_id, user_id, player_number):
 def update_user_settings(user_id, setting, value):
 
 	cur.execute(
-		psycopg2.sql.SQL("insert into uno_users (user_id, {settings}) values (%s, %s) "
+		sql.SQL("insert into uno_users (user_id, {settings}) values (%s, %s) "
 			"on conflict (user_id) do update set {settings} = excluded.{settings};")
 			.format(
-				settings=psycopg2.sql.Identifier(setting)
+				settings=sql.Identifier(setting)
 			),
 		(user_id, value,)
 	)
