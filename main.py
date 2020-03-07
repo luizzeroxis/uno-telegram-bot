@@ -533,6 +533,9 @@ def get_user_settings(user_id):
 	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
 	result = cur.fetchone()
 
+	if result == None:
+		result = (None, ) * len(cur.description)
+
 	return dict(zip(cur.description, result))
 
 def select_users_info_in_room(room_id):
