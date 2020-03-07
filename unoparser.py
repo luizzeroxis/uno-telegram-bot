@@ -2,10 +2,16 @@ import uno
 
 from plural import plural
 
-KIND_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'R', 'S', '+2', '+4', 'W']
+KIND_STRINGS_SHORT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'R', 'S', '+2', '+4', 'W']
+KIND_STRINGS_LONG = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Reverse', 'Skip', 'Draw 2', 'Draw 4', 'Wild']
+
+KIND_STRINGS = KIND_STRINGS_SHORT
 
 COLOR_STRINGS_SHORT = ['', 'b', 'g', 'r', 'y']
 COLOR_STRINGS_EMOJI = ['⬛', '🟦', '🟩', '🟥', '🟨']
+COLOR_STRINGS_CIRCLE = ['⚫', '🔵', '🟢', '🔴', '🟡']
+COLOR_STRINGS_HEART = ['🖤', '💚', '💙', '❤️', '💛']
+COLOR_STRINGS_LONG = ['', 'Blue', 'Green', 'Red', 'Yellow']
 
 COLOR_STRINGS = COLOR_STRINGS_SHORT
 
@@ -13,16 +19,27 @@ ACTION_CMD_STRINGS = {
 	'd': uno.ACTION_DRAW,
 	'p': uno.ACTION_PASS,
 	'c': uno.ACTION_CALL_BLUFF,
+
+	'draw': uno.ACTION_DRAW,
+	'pass': uno.ACTION_PASS,
+	'call bluff': uno.ACTION_CALL_BLUFF,
 }
 
 KIND_CMD_STRINGS = {
 	'0': 0, '1': 1, '2': 2, '3': 3, '4': 4,
 	'5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+
 	'r': uno.KIND_REVERSE,
 	's': uno.KIND_SKIP,
 	'+2': uno.KIND_DRAW_2,
 	'+4': uno.KIND_DRAW_4,
 	'w': uno.KIND_WILD,
+
+	'reverse': uno.KIND_REVERSE,
+	'skip': uno.KIND_SKIP,
+	'draw 2': uno.KIND_DRAW_2,
+	'draw 4': uno.KIND_DRAW_4,
+	'wild': uno.KIND_WILD,
 }
 
 COLOR_CMD_STRINGS = {
@@ -30,6 +47,26 @@ COLOR_CMD_STRINGS = {
 	'g': uno.COLOR_GREEN,
 	'r': uno.COLOR_RED,
 	'y': uno.COLOR_YELLOW,
+
+	'🟦': uno.COLOR_BLUE,
+	'🟩': uno.COLOR_GREEN,
+	'🟥': uno.COLOR_RED,
+	'🟨': uno.COLOR_YELLOW,
+
+	'🔵': uno.COLOR_BLUE,
+	'🟢': uno.COLOR_GREEN,
+	'🔴': uno.COLOR_RED,
+	'🟡': uno.COLOR_YELLOW,
+
+	'💚': uno.COLOR_BLUE,
+	'💙': uno.COLOR_GREEN,
+	'❤️': uno.COLOR_RED,
+	'💛': uno.COLOR_YELLOW,
+
+	'blue': uno.COLOR_BLUE,
+	'green': uno.COLOR_GREEN,
+	'red': uno.COLOR_RED,
+	'yellow': uno.COLOR_YELLOW,
 }
 
 def card_string(card):

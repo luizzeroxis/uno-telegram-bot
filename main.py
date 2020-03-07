@@ -80,7 +80,7 @@ def handler_settings(update, context):
 
 	# All possible settings and its possible values (first one is the default)
 	all_settings = {
-		'style': ('short', 'emoji'),
+		'style': ('short', 'emoji', 'circle', 'heart', 'long'),
 	}
 
 	settings = get_user_settings(user_id)
@@ -95,7 +95,7 @@ def handler_settings(update, context):
 
 	elif len(context.args) == 1:
 
-		setting = context.args[0]
+		setting = context.args[0].lower()
 
 		if setting in all_settings:
 			default = all_settings[setting][0]
@@ -105,8 +105,8 @@ def handler_settings(update, context):
 
 	elif len(context.args) >= 2:
 
-		setting = context.args[0]
-		value = context.args[1]
+		setting = context.args[0].lower()
+		value = context.args[1].lower()
 
 		if setting in all_settings:
 			if value in all_settings[setting]:
@@ -399,6 +399,7 @@ def help_text():
 		"/begin - Begin game\n"
 		"/end - End game\n"
 		"/chat - Send a message to all in room\n"
+		"/settings - Change user settings\n"
 		"\n"
 		"When in game, send a message to make a play.\n"
 		"d - Draw card(s)\n"
@@ -516,8 +517,19 @@ def get_and_apply_user_settings(user_id):
 
 	if style == 'short':
 		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_SHORT
+		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_SHORT
 	elif style == 'emoji':
 		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_EMOJI
+		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_SHORT
+	elif style == 'circle':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_CIRCLE
+		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_SHORT
+	elif style == 'heart':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_HEART
+		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_SHORT
+	elif style == 'long':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_LONG
+		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_LONG
 
 	return settings
 
