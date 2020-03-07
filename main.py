@@ -533,12 +533,17 @@ def get_user_settings(user_id):
 	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
 	result = cur.fetchone()
 
-	columns = (description.name for description in cur.description)
+	if not result:
+		return {}
+	else:
+		columns = (description.name for description in cur.description)
+		settings = dict(zip(columns, result))
 
-	if result == None:
-		result = (None, ) * len(cur.description)
+		for key, value in settings.items():
+			if not value:
+				del settings[key]
 
-	return dict(zip(columns, result))
+		return settings
 
 def select_users_info_in_room(room_id):
 	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_number, user_id;", (room_id,))
