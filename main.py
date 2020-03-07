@@ -608,8 +608,15 @@ def update_player_number(room_id, user_id, player_number):
 	# conn.commit()
 
 def update_user_settings(user_id, setting, value):
-	cur.execute("insert into uno_users (user_id, %(setting)s) values (%(user_id)s, %(value)s) on conflict (user_id) do update set %(setting)s = excluded.%(setting)s;",
-		{'setting': setting, 'user_id': user_id, 'value': value, })
+
+	cur.execute(
+		psycopg2.sql.SQL("insert into uno_users (user_id, {settings}) values (%s, %s) "
+			"on conflict (user_id) do update set {settings} = excluded.{settings};")
+			.format(
+				settings=psycopg2.sql.Identifier(setting)
+			),
+		(user_id, value,)
+	)
 	# conn.commit()
 
 def delete_user_from_room(user_id):
