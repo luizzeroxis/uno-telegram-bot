@@ -32,6 +32,7 @@ Possible plays:
 |[color]\<kind\>[new color]|Discard card with color and kind. If kind colorless, set chosen color afterwards.
 |d|Draw cards from pile|
 |p|Pass turn to next player|
+|c|Call previous player's bluff|
 
 Possible colors:
 |Command|Meaning|
@@ -68,6 +69,7 @@ This bot tries to follow the official rules, but it might slightly diverge from 
 * If a Draw card is played on top of a Draw 2 card, the number of cards to be drawn is added, and the next player will have to draw the total amount of cards or continue adding.
 * No Draw cards can be played on top of Draw 4 card.
 * If a Draw 4 or Wild card is played, the player must set a new color that card will represent, as the next player must match that color, unless they play a colorless card.
+* If a Draw 4 card is played, the next player can either draw or call a bluff. A player bluffs if they play a Draw 4 card while having cards of the current color avaliable to play, but if not, then it's not a bluff. If it was a bluff, the player that bluffed receives 4 cards, and if it was not, the player that called the bluff receives 6 cards.
 * The player that reaches 0 cards in their hand wins.
 
 ## How to host

@@ -38,6 +38,7 @@ def main():
 	# Command handlers
 	dp.add_handler(CommandHandler('start', handler_start))
 	dp.add_handler(CommandHandler('help', handler_help))
+	dp.add_handler(CommandHandler('settings', handler_settings))
 
 	dp.add_handler(CommandHandler('status', handler_status))
 	dp.add_handler(CommandHandler('new', handler_new))
@@ -68,6 +69,55 @@ def handler_start(update, context):
 
 def handler_help(update, context):
 	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+def handler_settings(update, context):
+
+	text = ''
+	user_id = update.message.from_user.id
+
+	# All possible settings and its possible values (first one is the default)
+	all_settings = {
+		'style': ('short', 'emoji'),
+	}
+
+	settings = get_user_settings(user_id)
+
+	if len(context.args) == 0:
+		
+		text += 'Your current settings:\n'
+
+		for setting in all_settings:
+			default = all_settings[setting][0]
+			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
+
+	elif len(context.args) == 1:
+
+		setting = context.args[0]
+
+		if setting in all_settings:
+			default = all_settings[setting][0]
+			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
+		else:
+			text += 'This setting does not exist!\n'
+
+	elif len(context.args) >= 2:
+
+		setting = context.args[0]
+		value = context.args[1]
+
+		if setting in all_settings:
+			if value in all_settings[setting]:
+
+				update_user_settings(user_id, setting, value)
+				db_commit()
+
+				text += 'Setting set.\n'
+			else:
+				text += 'This value is not allowed for this setting!\n'
+		else:
+			text += 'This setting does not exist!\n'
+
+	update.message.reply_text(text)
 
 def handler_status(update, context):
 
@@ -250,17 +300,6 @@ def handler_error(update, context):
 	user_id = update.message.from_user.id
 	send_message_to_user(context, user_id, get_error_message())
 
-def get_and_apply_user_settings(user_id):
-
-	settings = get_user_settings(user_id)
-
-	if settings['style'] == 'short':
-		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_SHORT
-	elif settings['style'] == 'emoji':
-		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_EMOJI
-
-	return settings
-
 def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
@@ -361,6 +400,7 @@ def help_text():
 		"When in game, send a message to make a play.\n"
 		"d - Draw card(s)\n"
 		"p - Pass\n"
+		"c - Call bluff\n"
 		"<color><kind> - Play card of said color and kind.\n"
 		"<color> can be b, g, r, y, or nothing in kinds that have no color.\n"
 		"<kind> can be 0 to 9, r, s, +2, +4, or w\n"
@@ -465,6 +505,19 @@ def get_error_message():
 		"no u",
 	))
 
+def get_and_apply_user_settings(user_id):
+
+	settings = get_user_settings(user_id)
+
+	style = settings.get('style', 'short')
+
+	if style == 'short':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_SHORT
+	elif style == 'emoji':
+		unoparser.COLOR_STRINGS = unoparser.COLOR_STRINGS_EMOJI
+
+	return settings
+
 ## Database functions
 
 def get_current_room(user_id):
@@ -542,6 +595,11 @@ def update_game(room_id, game):
 
 def update_player_number(room_id, user_id, player_number):
 	cur.execute("update uno_joins set player_number=%s where room_id=%s and user_id=%s;", (player_number, room_id, user_id,))
+	# conn.commit()
+
+def update_user_settings(user_id, setting, value):
+	cur.execute("insert into uno_users (user_id, %(setting)s) values (%(user_id)s, %(value)s) on conflict (user_id) do update set %(setting)s = excluded.%(setting)s;",
+		{'setting': setting, 'user_id': user_id, 'value': value, })
 	# conn.commit()
 
 def delete_user_from_room(user_id):
