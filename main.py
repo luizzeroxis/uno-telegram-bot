@@ -126,6 +126,7 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
+	get_and_apply_user_settings(user_id)
 	text = status(get_current_room(user_id), user_id)
 
 	send_message_to_user(context, user_id, text)
@@ -308,8 +309,6 @@ def handler_text_message(update, context):
 	user_id = update.message.from_user.id
 	room_id = get_current_room(user_id)
 
-	get_and_apply_user_settings(user_id)
-
 	if room_id:
 
 		message = update.message.text
@@ -335,6 +334,8 @@ def handler_text_message(update, context):
 						if game.winner == None:
 
 							current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+
+							get_and_apply_user_settings(current_user_id)
 
 							# send message to player that is current
 							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
@@ -431,14 +432,14 @@ def send_message_to_room(context, room_id, text, not_me=None):
 	if text and room_id:
 		for user_id in select_users_ids_in_room(room_id):
 			if user_id != not_me:
+
 				if callable(text):
+					get_and_apply_user_settings(user_id)
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
 
 def status(room_id, user_id, show_room_info=True):
-
-	get_and_apply_user_settings(user_id)
 
 	text = ''
 
