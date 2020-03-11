@@ -10,7 +10,7 @@ KIND_STRINGS = KIND_STRINGS_SHORT
 COLOR_STRINGS_SHORT = ['', 'b', 'g', 'r', 'y']
 COLOR_STRINGS_EMOJI = ['⬛', '🟦', '🟩', '🟥', '🟨']
 COLOR_STRINGS_CIRCLE = ['⚫', '🔵', '🟢', '🔴', '🟡']
-COLOR_STRINGS_HEART = ['🖤', '💚', '💙', '❤️', '💛']
+COLOR_STRINGS_HEART = ['🖤', '💙', '💚', '❤️', '💛']
 COLOR_STRINGS_LONG = ['', 'Blue', 'Green', 'Red', 'Yellow']
 
 COLOR_STRINGS = COLOR_STRINGS_SHORT
