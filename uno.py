@@ -264,18 +264,18 @@ class Game():
 		if not self.can_call_bluff:
 			return PlayResult(fail_reason='last_not_draw_4')
 
-		# If bluffed, previous player has to draw 4 cards
+		# If bluffed, previous player has to draw stacked draw card amount
 		if self.previous_bluffed:
 
-			num_draw = 4
+			num_draw = self.draw_amount
 
 			self.player_cards[self.previous_player] += list(self.pick_cards(num_draw))
 			self.sort_player_cards(self.previous_player)
 
-		# If not bluffed, current player has to draw 6 cards
+		# If not bluffed, current player has to draw stacked draw card amount plus 2
 		else:
 
-			num_draw = 6
+			num_draw = self.draw_amount + 2
 
 			self.player_cards[self.current_player] += list(self.pick_cards(num_draw))
 			self.sort_player_cards(self.current_player)
