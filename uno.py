@@ -203,9 +203,6 @@ class Game():
 		if len(self.player_cards[self.current_player]) == 1:
 			uno = True
 
-		# Sort cards (if drawn card happens)
-		self.sort_player_cards(self.current_player)
-
 		# Special card effects
 		self.do_special_effects(card, new_color)
 
@@ -302,16 +299,6 @@ class Game():
 	def get_num_players_cards(self):
 		for player, cards in enumerate(self.player_cards):
 			yield (player, len(cards))
-
-	def info(self):
-
-		print('Players:')
-		for player in range(self.num_players):
-			print(str(player) + ': ' + str(len(self.player_cards[player])) + ' cards')
-
-		print('Current card: ' + str(self.current_card))
-
-		print('Your cards: ' + str(self.player_cards[self.current_player]))
 
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
