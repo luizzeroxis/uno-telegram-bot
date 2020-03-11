@@ -14,6 +14,7 @@ from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError, Unauthorized, BadRequest,  TimedOut, ChatMigrated, NetworkError
 
+bot = None
 conn, cur = None, None
 
 def main():
@@ -36,6 +37,11 @@ def main():
 	## Bot setup
 	# Set up the Updater
 	updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
+
+	global bot
+	bot = updater.bot
+
+	## Handlers
 	dp = updater.dispatcher
 
 	# Command handlers
@@ -543,7 +549,7 @@ def get_and_apply_user_settings(user_id):
 	return settings
 
 def get_user_name(user_id):
-	
+
 	chat = bot.get_chat(user_id)
 	if chat.username:
 		return '@{}'.format(chat.username)
