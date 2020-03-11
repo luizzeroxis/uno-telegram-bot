@@ -492,21 +492,21 @@ def status(room_id, user_id, show_room_info=True):
 
 def get_error_message():
 	return random.choice((
-		"Please, you are annoying me",
-		"Leave me alone at least for one second",
-		"I just don't want to do it now",
-		"Will I be able to finally relax one day?",
-		"Could you just don't?",
-		"I don't want to work right now. You can complain to the admin if you want.",
+		"Could you just not?",
 		"Don't you have anything better to do?",
-		"You could be living your life but you are texting a lifeless bot. Nice.",
-		"I'm not in the mood. Maybe later.",
-		"Excuse me for one second, I have to do something REALLY important.",
-		"Sure, I'm going to do that.",
-		"Remind me later.",
+		"Excuse me for one second, I have to do something.",
 		"I can't listen. I'm out of phone signal. Bye.",
+		"I just don't wanna do it right now",
+		"I'm not in the mood. Maybe later.",
+		"Leave me alone at least for one second",
+		"Please, you're annoying me",
+		"Remind me later.",
+		"Screw this, I don't want to work on this garbage.",
 		"Sorry, my cat is suffering from dysentery now.",
+		"Sure, I'm gonna do that.",
 		"This action requires Telegram Gold.",
+		"Will I be able to finally relax one day?",
+		"You could be living your life but you are texting a lifeless bot. Nice.",
 		"no u",
 	))
 
