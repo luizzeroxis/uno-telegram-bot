@@ -150,12 +150,10 @@ def handler_new(update, context):
 	update.message.reply_text(text)
 
 def handler_join(update, context):
-	
-	if not update.message:
-		print(update)
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = None
 
 	if len(context.args) > 0:
@@ -183,7 +181,7 @@ def handler_join(update, context):
 				db_commit()
 
 				text += 'Joined room ' + str(room_id) + '.\n'
-				text_to_all += str(user_id) + ' joined the room.\n'
+				text_to_all += user_name + ' joined the room.\n'
 			
 		else:
 			text += 'This can\'t possibly be a room! Come on!\n'
@@ -198,6 +196,7 @@ def handler_leave(update, context):
 	
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = get_current_room(user_id)
 
 	if room_id:
@@ -215,7 +214,7 @@ def handler_leave(update, context):
 
 				text += 'The room was empty with your departure, so it has been deleted.\n'
 			else:
-				text_to_all += str(user_id) + ' left the room.\n'
+				text_to_all += user_name + ' left the room.\n'
 
 			db_commit()
 
@@ -232,6 +231,7 @@ def handler_begin(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = get_current_room(user_id)
 
 	if room_id:
@@ -239,9 +239,9 @@ def handler_begin(update, context):
 
 		game = select_game(room_id)
 		if not game:
-			text_to_all += str(user_id) + ' has begun the game'
+			text_to_all += user_name + ' has begun the game'
 		else:
-			text_to_all += str(user_id) + ' has rebegun the game'
+			text_to_all += user_name + ' has rebegun the game'
 
 		game = uno.Game()
 		game.begin(len(users))
@@ -265,6 +265,7 @@ def handler_begin(update, context):
 def handler_end(update, context):
 	
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = get_current_room(user_id)
 
 	if room_id:
@@ -275,7 +276,7 @@ def handler_end(update, context):
 			update_game(room_id, None)
 			db_commit()
 
-			send_message_to_room(context, room_id, str(user_id) + ' has ended the game')
+			send_message_to_room(context, room_id, user_name + ' has ended the game')
 
 		else:
 			update.message.reply_text("But there is no game going on!")
@@ -287,12 +288,13 @@ def handler_chat(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = get_current_room(user_id)
 
 	message = ' '.join(context.args)
 
 	if room_id:
-		text_to_all += str(user_id) + ': ' + message
+		text_to_all += user_name + ': ' + message
 	else:
 		text += 'You cannot send chat messages if you are not in a room!\n'
 		update.message.reply_text(text)
@@ -307,6 +309,7 @@ def handler_error(update, context):
 def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name
 	room_id = get_current_room(user_id)
 
 	if room_id:
@@ -329,7 +332,7 @@ def handler_text_message(update, context):
 						update_game(room_id, game)
 						db_commit()
 
-						send_message_to_room(context, room_id, lambda x: str(user_id) + ' ' + unoparser.play_result_string(play_result))
+						send_message_to_room(context, room_id, lambda x: user_name + ' ' + unoparser.play_result_string(play_result))
 
 						if game.winner == None:
 
@@ -342,7 +345,7 @@ def handler_text_message(update, context):
 
 						else:
 
-							send_message_to_room(context, room_id, lambda x: str(user_id) + ' won.')
+							send_message_to_room(context, room_id, lambda x: user_name + ' won.')
 
 					else:
 
@@ -353,10 +356,12 @@ def handler_text_message(update, context):
 					update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
 
 			else:
-				update.message.reply_text('It is not your turn! The current player is ' + str(select_user_id_from_player_number(room_id, game.current_player)))
+				current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
 
 		else:
-			update.message.reply_text(str(select_user_id_from_player_number(room_id, game.winner)) + ' already won this game! You cannot play anymore. Try /begin')
+			winner_user_id = select_user_id_from_player_number(room_id, game.winner)
+			update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
 
 	else:
 		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
@@ -453,9 +458,12 @@ def status(room_id, user_id, show_room_info=True):
 				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n')
 
 		for for_player_number, for_user_id in users:
+
+			for_user_name = get_user_name(for_user_id)
+
 			if game:
 				num_cards = len(game.player_cards[for_player_number])
-				text += (str(for_player_number) + ': ' + str(for_user_id)
+				text += (str(for_player_number) + ': ' + for_user_name
 					+ ' (' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards') + ')')
 
 				if game.winner == None and game.current_player == for_player_number:
@@ -464,7 +472,7 @@ def status(room_id, user_id, show_room_info=True):
 					text += ' <- Winner'
 
 			else:
-				text += '- ' + str(for_user_id)
+				text += '- ' + for_user_name
 
 			text += '\n'
 
@@ -533,6 +541,13 @@ def get_and_apply_user_settings(user_id):
 		unoparser.KIND_STRINGS = unoparser.KIND_STRINGS_LONG
 
 	return settings
+
+def get_user_name(user_id):
+	
+	chat = bot.get_chat(user_id)
+	if chat.username:
+		return '@{}'.format(chat.username)
+	return chat.full_name
 
 ## Database functions
 
