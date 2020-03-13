@@ -8,26 +8,48 @@ game = None
 
 def main():
 
+	begin()
+	play_until_end()
+
+def begin():
+
 	num_players = ask_input("Number of players: ", parse_pos_int)
 
 	global game
 	game = uno.Game()
 	game.begin(num_players)
 
-	status(game)
+	status()
 
-	while True:
-		play = ask_input(str(game.current_player) + "> ", parse_play)
+def play():
 
-		play_result = game.play(game.current_player, play)
+	play = ask_input(str(game.current_player) + "> ", parse_play, once=True)
+	if not play:
+		return False
 
-		if play_result.success:
-			print(unoparser.play_result_string(play_result))
-			status(game)
-		else:
-			print(unoparser.fail_reason_string(play_result.fail_reason))
+	play_result = game.play(game.current_player, play)
 
-def status(game):
+	if play_result.success:
+		print(unoparser.play_result_string(play_result))
+		status()
+		return True
+	else:
+		print(unoparser.fail_reason_string(play_result.fail_reason))
+		return False
+
+def play_until_success():
+
+	while not play():
+		pass
+
+def play_until_end():
+
+	while game.winner == None:
+		play()
+
+	print(game.winner + ' won.')
+
+def status():
 
 	text = ''
 
@@ -62,13 +84,7 @@ def status(game):
 
 	return text
 
-def parse_pos_int(string):
-	try:
-		return int(string)
-	except ValueError as e:
-		raise InputParsingError('That is not a positive integer number!')
-
-def ask_input(text, return_fun=lambda x: x):
+def ask_input(text, return_fun=lambda x: x, once=False):
 
 	while True:
 		result = input(text)
@@ -76,6 +92,15 @@ def ask_input(text, return_fun=lambda x: x):
 			return return_fun(result)
 		except InputParsingError as e:
 			print(e)
+
+		if once:
+			break
+
+def parse_pos_int(string):
+	try:
+		return int(string)
+	except ValueError as e:
+		raise InputParsingError('That is not a positive integer number!')
 
 def parse_play(message):
 
