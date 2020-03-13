@@ -33,6 +33,7 @@ class Game():
 		self.previous_bluffed = None
 		self.draw_pile = []
 		self.player_cards = []
+		self.discard_pile = []
 
 	def begin(self, num_players):
 
@@ -68,6 +69,7 @@ class Game():
 		self.current_card = card
 		self.current_kind = card.kind
 		self.current_color = card.color
+		self.discard_pile += card
 
 	def pick_card(self):
 		return self.draw_pile.pop()
