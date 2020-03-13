@@ -69,9 +69,20 @@ class Game():
 		self.current_card = card
 		self.current_kind = card.kind
 		self.current_color = card.color
-		self.discard_pile += card
+		self.discard_pile.append(card)
 
 	def pick_card(self):
+		if len(self.draw_pile) == 0:
+
+			if len(self.discard_pile) == 1:
+				print("You ran out of cards. How's that even possible")
+				pass
+
+			self.draw_pile = self.discard_pile[:-1]
+			self.discard_pile = self.discard_pile[-1:]
+
+			self.shuffle_cards()
+
 		return self.draw_pile.pop()
 
 	def pick_cards(self, number):
