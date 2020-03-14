@@ -125,13 +125,6 @@ class Game():
 		elif card.kind == KIND_WILD:
 			self.current_color = new_color
 
-	def win(self):
-		self.winner = self.current_player
-		print(str(self.current_player) + ' won')
-
-	def uno(self):
-		print(str(self.current_player) + ' uwu')
-
 	def play(self, player, play):
 
 		if player != self.current_player:
@@ -197,7 +190,7 @@ class Game():
 
 		# If no cards in hand, player wins
 		if len(self.player_cards[self.current_player]) == 0:
-			self.win()
+			self.winner = self.current_player
 
 		# If one card in hand, say UNO
 		uno = False
@@ -300,6 +293,9 @@ class Game():
 	def get_num_players_cards(self):
 		for player, cards in enumerate(self.player_cards):
 			yield (player, len(cards))
+
+	def get_next_player(self):
+		return (self.current_player + self.direction) % self.num_players
 
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])

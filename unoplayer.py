@@ -53,13 +53,21 @@ def status():
 
 	text = ''
 
-	for for_player_number in range(game.num_players):
+	if game.direction == 1:
+		player_numbers = range(game.num_players)
+	else:
+		player_numbers = range(game.num_players-1, -1, -1)
+
+	for for_player_number in player_numbers:
 
 		num_cards = len(game.player_cards[for_player_number])
 		text += str(for_player_number) + ': ' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards')
 
-		if game.winner == None and game.current_player == for_player_number:
-			text += ' <- Current player'
+		if game.winner == None:
+			if game.current_player == for_player_number:
+				text += ' <- Current'
+			elif game.get_next_player() == for_player_number:
+				text += ' <- Next'
 		elif game.winner == for_player_number:
 			text += ' <- Winner'
 
@@ -112,6 +120,9 @@ def parse_play(message):
 	if message == 'clear cards':
 		game.player_cards[game.current_player] = []
 		raise InputParsingError('CHEAT: CLEAR CARDS')
+	if message == 'give r':
+		game.player_cards[game.current_player] += [uno.Card(uno.KIND_REVERSE, color) for color in uno.COLORS]
+		raise InputParsingError('CHEAT: GIVE R')
 
 	return unoparser.parse_play(message)
 

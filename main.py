@@ -463,6 +463,10 @@ def status(room_id, user_id, show_room_info=True):
 			text += ('You are currently in room number ' + str(room_id)
 				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n')
 
+		if game:
+			if game.direction == -1:
+				users.reversed()
+
 		for for_player_number, for_user_id in users:
 
 			for_user_name = get_user_name(for_user_id)
@@ -472,8 +476,11 @@ def status(room_id, user_id, show_room_info=True):
 				text += (str(for_player_number) + ': ' + for_user_name
 					+ ' (' + str(num_cards) + ' ' + plural(num_cards, 'card', 'cards') + ')')
 
-				if game.winner == None and game.current_player == for_player_number:
-					text += ' <- Current player'
+				if game.winner == None:
+					if game.current_player == for_player_number:
+						text += ' <- Current'
+					elif game.get_next_player() == for_player_number:
+						text += ' <- Next'
 				elif game.winner == for_player_number:
 					text += ' <- Winner'
 
