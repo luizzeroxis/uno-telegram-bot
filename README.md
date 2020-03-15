@@ -22,7 +22,7 @@ With this bot, you can create and join rooms with other people and play UNO with
 
 **/chat** \<message\> - Send a message to all other people in the room.
 
-**/settings** \<setting>\ \<value>\ - View or update your user settings.
+**/settings** \<setting\> \<value\> - View or update your user settings.
 
 When in game, send a message with the following commands to play.
 
