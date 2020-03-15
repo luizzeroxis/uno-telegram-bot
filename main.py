@@ -565,7 +565,7 @@ def get_user_name(user_id):
 	if chat.last_name:
 		return u'({}) {} {}'.format(user_id, chat.first_name, chat.last_name)
 
-	return chat.first_name
+	return u'({}) {}'.format(user_id, chat.first_name)
 
 ## Database functions
 
