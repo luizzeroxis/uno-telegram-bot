@@ -558,9 +558,14 @@ def get_and_apply_user_settings(user_id):
 def get_user_name(user_id):
 
 	chat = bot.get_chat(user_id)
+
 	if chat.username:
 		return '@{}'.format(chat.username)
-	return chat.full_name
+		
+	if chat.last_name:
+		return u'({}) {} {}'.format(user_id, chat.first_name, chat.last_name)
+
+	return chat.first_name
 
 ## Database functions
 
