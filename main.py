@@ -465,7 +465,7 @@ def status(room_id, user_id, show_room_info=True):
 
 		if game:
 			if game.direction == -1:
-				users.reversed()
+				users.reverse()
 
 		for for_player_number, for_user_id in users:
 
