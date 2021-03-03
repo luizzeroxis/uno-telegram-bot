@@ -529,6 +529,7 @@ def get_error_message():
 		"Will I be able to finally relax one day?",
 		"You could be living your life but you are texting a lifeless bot. Nice.",
 		"no u",
+		"I am error.",
 	))
 
 def get_and_apply_user_settings(user_id):
