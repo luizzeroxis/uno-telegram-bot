@@ -161,7 +161,7 @@ class Game():
 
 			# If +4, can't add anymore, must draw or call bluff
 			if self.current_kind == KIND_DRAW_4:
-				return PlayResult(fail_reason='not_draw_4_or_draw')
+				return PlayResult(fail_reason='not_draw_or_bluff')
 
 		# Check if card matches current card in kind or color
 		if card.color != NO_COLOR and card.kind != self.current_kind and card.color != self.current_color:

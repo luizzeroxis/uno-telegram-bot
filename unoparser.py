@@ -123,8 +123,8 @@ def fail_reason_string(fail_reason):
 		return 'You can only play the card you drew or pass!'
 	elif fail_reason == 'not_draw_2_or_4_or_draw':
 		return 'You can only play +2, +4 or draw when the current card is +2 or +4!'
-	elif fail_reason == 'not_draw_4_or_draw':
-		return 'You can only play +4 or draw when the current card is +4!'
+	elif fail_reason == 'not_draw_or_bluff':
+		return 'You can only draw or call a bluff when the current card is +4!'
 	elif fail_reason == 'card_doesnt_match':
 		return 'This card does not match the current card!'
 	elif fail_reason == 'already_drew':
