@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 12.2
--- Dumped by pg_dump version 12.2
+-- Dumped from database version 13.2
+-- Dumped by pg_dump version 13.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16,20 +16,12 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-ALTER TABLE ONLY public.uno_rooms DROP CONSTRAINT uno_rooms_pkey;
-ALTER TABLE ONLY public.uno_joins DROP CONSTRAINT uno_joins_pkey;
-ALTER TABLE public.uno_rooms ALTER COLUMN id DROP DEFAULT;
-ALTER TABLE public.uno_joins ALTER COLUMN id DROP DEFAULT;
-DROP SEQUENCE public.uno_rooms_id_seq;
-DROP TABLE public.uno_rooms;
-DROP SEQUENCE public.uno_joins_id_seq;
-DROP TABLE public.uno_joins;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: uno_joins; Type: TABLE; Schema: public; Owner: -
+-- Name: uno_joins; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.uno_joins (
@@ -40,8 +32,10 @@ CREATE TABLE public.uno_joins (
 );
 
 
+ALTER TABLE public.uno_joins OWNER TO postgres;
+
 --
--- Name: uno_joins_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: uno_joins_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.uno_joins_id_seq
@@ -53,15 +47,17 @@ CREATE SEQUENCE public.uno_joins_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.uno_joins_id_seq OWNER TO postgres;
+
 --
--- Name: uno_joins_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: uno_joins_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.uno_joins_id_seq OWNED BY public.uno_joins.id;
 
 
 --
--- Name: uno_rooms; Type: TABLE; Schema: public; Owner: -
+-- Name: uno_rooms; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.uno_rooms (
@@ -70,8 +66,10 @@ CREATE TABLE public.uno_rooms (
 );
 
 
+ALTER TABLE public.uno_rooms OWNER TO postgres;
+
 --
--- Name: uno_rooms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: uno_rooms_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
 CREATE SEQUENCE public.uno_rooms_id_seq
@@ -83,29 +81,73 @@ CREATE SEQUENCE public.uno_rooms_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.uno_rooms_id_seq OWNER TO postgres;
+
 --
--- Name: uno_rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: uno_rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.uno_rooms_id_seq OWNED BY public.uno_rooms.id;
 
 
 --
--- Name: uno_joins id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: uno_users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.uno_users (
+    id integer NOT NULL,
+    user_id integer,
+    style text
+);
+
+
+ALTER TABLE public.uno_users OWNER TO postgres;
+
+--
+-- Name: uno_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.uno_users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.uno_users_id_seq OWNER TO postgres;
+
+--
+-- Name: uno_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.uno_users_id_seq OWNED BY public.uno_users.id;
+
+
+--
+-- Name: uno_joins id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.uno_joins ALTER COLUMN id SET DEFAULT nextval('public.uno_joins_id_seq'::regclass);
 
 
 --
--- Name: uno_rooms id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: uno_rooms id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.uno_rooms ALTER COLUMN id SET DEFAULT nextval('public.uno_rooms_id_seq'::regclass);
 
 
 --
--- Name: uno_joins uno_joins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: uno_users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.uno_users ALTER COLUMN id SET DEFAULT nextval('public.uno_users_id_seq'::regclass);
+
+
+--
+-- Name: uno_joins uno_joins_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.uno_joins
@@ -113,11 +155,27 @@ ALTER TABLE ONLY public.uno_joins
 
 
 --
--- Name: uno_rooms uno_rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: uno_rooms uno_rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.uno_rooms
     ADD CONSTRAINT uno_rooms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: uno_users uno_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.uno_users
+    ADD CONSTRAINT uno_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: uno_users uq_uno_users_user_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.uno_users
+    ADD CONSTRAINT uq_uno_users_user_id UNIQUE (user_id);
 
 
 --
