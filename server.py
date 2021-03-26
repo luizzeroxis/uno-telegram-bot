@@ -9,7 +9,7 @@ import psycopg2
 # All possible settings and its possible values (first one is the default)
 all_settings = {
 	'style': ('short', 'emoji', 'circle', 'heart', 'long',),
-	'show_play_number': (False, True,),
+	'show_play_number': ('false', 'true',),
 }
 
 conn, cur = None, None
