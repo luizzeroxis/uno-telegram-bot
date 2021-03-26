@@ -35,6 +35,7 @@ class Game():
 		self.player_cards = []
 		self.discard_pile = []
 		self.draw_pile_has_emptied = False
+		self.current_play_number = 0
 
 	def begin(self, num_players):
 
@@ -209,6 +210,7 @@ class Game():
 
 		self.next_player()
 
+		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_PLAY, card=card, new_color=new_color, uno=uno)
 
 	def play_draw(self):
@@ -240,6 +242,7 @@ class Game():
 		# Clear previous bluff
 		self.can_call_bluff = False
 
+		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_DRAW, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
 	def play_pass(self):
@@ -256,6 +259,7 @@ class Game():
 		# Clear previous bluff
 		self.can_call_bluff = False
 
+		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_PASS)
 
 	def play_call_bluff(self):
@@ -287,6 +291,7 @@ class Game():
 
 		self.next_player()
 
+		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
 	def get_current_card(self):

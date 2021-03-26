@@ -329,13 +329,17 @@ def handler_text_message(update, context):
 						server.update_game(room_id, game)
 						server.commit()
 
-						send_message_to_room(context, room_id, lambda x: user_name + ' ' + unoparser.play_result_string(play_result))
+						settings = get_and_apply_user_settings(current_user_id)
+
+						play_number_text = ''
+						if settings.get('show_play_number', False):
+							play_number_text = '#' + str(game.current_play_number) + ': '
+
+						send_message_to_room(context, room_id, lambda x: play_number_text + user_name + ' ' + unoparser.play_result_string(play_result))
 
 						if game.winner == None:
 
 							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
-
-							get_and_apply_user_settings(current_user_id)
 
 							# send message to player that is current
 							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))

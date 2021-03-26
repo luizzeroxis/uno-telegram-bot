@@ -8,7 +8,8 @@ import psycopg2
 
 # All possible settings and its possible values (first one is the default)
 all_settings = {
-	'style': ('short', 'emoji', 'circle', 'heart', 'long'),
+	'style': ('short', 'emoji', 'circle', 'heart', 'long',),
+	'show_play_number': (False, True,),
 }
 
 conn, cur = None, None
@@ -27,6 +28,8 @@ def main():
 	conn = psycopg2.connect(DATABASE_URL)
 	cur = conn.cursor()
 
+## Database functions
+
 def get_user_settings(user_id):
 	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
 	result = cur.fetchone()
@@ -42,8 +45,6 @@ def get_user_settings(user_id):
 				del settings[key]
 
 		return settings
-
-## Database functions
 
 def get_current_room(user_id):
 	cur.execute("select room_id from uno_joins where user_id=%s limit 1;", (user_id,))

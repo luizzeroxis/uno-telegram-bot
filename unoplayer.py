@@ -23,6 +23,8 @@ def begin():
 
 def play():
 
+	playing_player = game.current_player
+
 	play = ask_input(str(game.current_player) + "> ", parse_play, once=True)
 	if not play:
 		return False
@@ -30,7 +32,7 @@ def play():
 	play_result = game.play(game.current_player, play)
 
 	if play_result.success:
-		print(unoparser.play_result_string(play_result))
+		print("#" + str(game.current_play_number) + ": " + str(playing_player) + " " + unoparser.play_result_string(play_result))
 		status()
 		return True
 	else:
