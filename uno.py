@@ -34,6 +34,7 @@ class Game():
 		self.draw_pile = []
 		self.player_cards = []
 		self.discard_pile = []
+		self.draw_pile_has_emptied = False
 
 	def begin(self, num_players):
 
@@ -74,7 +75,7 @@ class Game():
 	def pick_card(self):
 		if len(self.draw_pile) == 0:
 
-			if len(self.discard_pile) == 1:
+			if len(self.discard_pile) <= 1:
 				print("You ran out of cards. How's that even possible")
 				pass
 
@@ -82,6 +83,8 @@ class Game():
 			self.discard_pile = self.discard_pile[-1:]
 
 			self.shuffle_cards()
+
+			self.draw_pile_has_emptied = True
 
 		return self.draw_pile.pop()
 
@@ -129,6 +132,8 @@ class Game():
 
 		if player != self.current_player:
 			return PlayResult(fail_reason='not_current_player')
+
+		self.draw_pile_has_emptied = False
 
 		if play.action == ACTION_PLAY:
 			return self.play_card(play.card, play.new_color)
@@ -235,7 +240,7 @@ class Game():
 		# Clear previous bluff
 		self.can_call_bluff = False
 
-		return PlayResult(success=True, action=ACTION_DRAW, num_draw=num_draw)
+		return PlayResult(success=True, action=ACTION_DRAW, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
 	def play_pass(self):
 
@@ -282,7 +287,7 @@ class Game():
 
 		self.next_player()
 
-		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw)
+		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
 	def get_current_card(self):
 		return self.current_card
@@ -300,9 +305,9 @@ class Game():
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
 PlayResult = namedtuple('PlayResult',
-	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'uno', 'fail_reason'],
+	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'uno', 'draw_pile_has_emptied', 'fail_reason'],
 	defaults=
-	(False, None, None, None, None, None, False, None))
+	(False, None, None, None, None, None, False, False, None))
 
 def make_cards(kinds, colors, amount=1):
 	for kind in kinds:

@@ -322,6 +322,10 @@ def handler_text_message(update, context):
 
 					if play_result.success:
 
+						if play_result.draw_pile_has_emptied:
+							send_message_to_room(context, room_id,
+								'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
+
 						server.update_game(room_id, game)
 						server.commit()
 
