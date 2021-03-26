@@ -118,7 +118,7 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
-	server.get_and_apply_user_settings(user_id)
+	get_and_apply_user_settings(user_id)
 	text = status(server.get_current_room(user_id), user_id)
 
 	send_message_to_user(context, user_id, text)
@@ -182,7 +182,7 @@ def handler_join(update, context):
 		text += 'You have not said the room you want to join! Try /join <room number>\n'
 
 	update.message.reply_text(text)
-	server.send_message_to_room(context, room_id, text_to_all)
+	send_message_to_room(context, room_id, text_to_all)
 
 def handler_leave(update, context):
 	
@@ -330,7 +330,7 @@ def handler_text_message(update, context):
 
 							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 
-							server.get_and_apply_user_settings(current_user_id)
+							get_and_apply_user_settings(current_user_id)
 
 							# send message to player that is current
 							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
@@ -431,7 +431,7 @@ def send_message_to_room(context, room_id, text, not_me=None):
 			if user_id != not_me:
 
 				if callable(text):
-					server.get_and_apply_user_settings(user_id)
+					get_and_apply_user_settings(user_id)
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
@@ -455,7 +455,7 @@ def status(room_id, user_id, show_room_info=True):
 
 		for for_player_number, for_user_id in users:
 
-			for_user_name = server.get_user_name(for_user_id)
+			for_user_name = get_user_name(for_user_id)
 
 			if game:
 				num_cards = len(game.player_cards[for_player_number])
