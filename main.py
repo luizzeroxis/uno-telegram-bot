@@ -92,6 +92,7 @@ def handler_settings(update, context):
 		if setting in server.all_settings:
 			default = server.all_settings[setting][0]
 			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
+			text += 'Possible values: ' + ", ".join(server.all_settings)
 		else:
 			text += 'This setting does not exist!\n'
 
