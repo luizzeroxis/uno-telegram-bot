@@ -40,10 +40,6 @@ def get_user_settings(user_id):
 		columns = (description.name for description in cur.description)
 		settings = dict(zip(columns, result))
 
-		for key, value in settings.items():
-			if not value:
-				del settings[key]
-
 		return settings
 
 def get_current_room(user_id):
