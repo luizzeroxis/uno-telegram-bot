@@ -1,38 +1,29 @@
-import os
+# Telegram bot webhook code
+
 import logging
-
-import psycopg2
-from psycopg2 import sql
-
-import pickle
+import os
 import random
-import uno, unoparser
 
+import uno, unoparser
 from plural import plural
+import server
 
 from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram.error import TelegramError, Unauthorized, BadRequest,  TimedOut, ChatMigrated, NetworkError
+from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError
 
 bot = None
-conn, cur = None, None
 
 def main():
-	
+
 	# Environment vars
 	TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 	TELEGRAM_BOT_WEBHOOK = os.environ.get('TELEGRAM_BOT_WEBHOOK')
-	DATABASE_URL = os.environ.get('DATABASE_URL')
 	PORT = os.environ.get('PORT')
 
 	# Enable logging
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 	logger = logging.getLogger(__name__)
-
-	## Database setup
-	global conn, cur
-	conn = psycopg2.connect(DATABASE_URL)
-	cur = conn.cursor()
 
 	## Bot setup
 	# Set up the Updater
@@ -84,27 +75,22 @@ def handler_settings(update, context):
 	text = ''
 	user_id = update.message.from_user.id
 
-	# All possible settings and its possible values (first one is the default)
-	all_settings = {
-		'style': ('short', 'emoji', 'circle', 'heart', 'long'),
-	}
-
-	settings = get_user_settings(user_id)
+	settings = server.get_user_settings(user_id)
 
 	if len(context.args) == 0:
 		
 		text += 'Your current settings:\n'
 
-		for setting in all_settings:
-			default = all_settings[setting][0]
+		for setting in server.all_settings:
+			default = server.all_settings[setting][0]
 			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
 
 	elif len(context.args) == 1:
 
 		setting = context.args[0].lower()
 
-		if setting in all_settings:
-			default = all_settings[setting][0]
+		if setting in server.all_settings:
+			default = server.all_settings[setting][0]
 			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
 		else:
 			text += 'This setting does not exist!\n'
@@ -114,11 +100,11 @@ def handler_settings(update, context):
 		setting = context.args[0].lower()
 		value = context.args[1].lower()
 
-		if setting in all_settings:
-			if value in all_settings[setting]:
+		if setting in server.all_settings:
+			if value in server.all_settings[setting]:
 
-				update_user_settings(user_id, setting, value)
-				db_commit()
+				server.update_user_settings(user_id, setting, value)
+				server.commit()
 
 				text += 'Setting set.\n'
 			else:
@@ -132,8 +118,8 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
-	get_and_apply_user_settings(user_id)
-	text = status(get_current_room(user_id), user_id)
+	server.get_and_apply_user_settings(user_id)
+	text = status(server.get_current_room(user_id), user_id)
 
 	send_message_to_user(context, user_id, text)
 
@@ -141,12 +127,12 @@ def handler_new(update, context):
 	
 	text = ''
 	user_id = update.message.from_user.id
-	current_room_id = get_current_room(user_id)
+	current_room_id = server.get_current_room(user_id)
 
 	if current_room_id == None:
-		room_id = insert_room()
-		insert_user_to_room(room_id, user_id)
-		db_commit()
+		room_id = server.insert_room()
+		server.insert_user_to_room(room_id, user_id)
+		server.commit()
 
 		text += 'Created and joined room ' + str(room_id) + '.\n'
 	
@@ -167,8 +153,8 @@ def handler_join(update, context):
 
 		if room_id != None:
 
-			current_room_id = get_current_room(user_id)
-			room_exists = check_room_exists(room_id)
+			current_room_id = server.get_current_room(user_id)
+			room_exists = server.check_room_exists(room_id)
 			game = None
 
 			if current_room_id:
@@ -177,14 +163,14 @@ def handler_join(update, context):
 			if not room_exists:
 				text += 'This room does not exist!\n'
 			else:
-				game = select_game(room_id)
+				game = server.select_game(room_id)
 
 			if game:
 				text += 'A game is being played in this room! They must /end it before anyone can join.\n'
 
 			if not current_room_id and room_exists and not game:
-				insert_user_to_room(room_id, user_id)
-				db_commit()
+				server.insert_user_to_room(room_id, user_id)
+				server.commit()
 
 				text += 'Joined room ' + str(room_id) + '.\n'
 				text_to_all += user_name + ' joined the room.\n'
@@ -196,33 +182,33 @@ def handler_join(update, context):
 		text += 'You have not said the room you want to join! Try /join <room number>\n'
 
 	update.message.reply_text(text)
-	send_message_to_room(context, room_id, text_to_all)
+	server.send_message_to_room(context, room_id, text_to_all)
 
 def handler_leave(update, context):
 	
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name
-	room_id = get_current_room(user_id)
+	room_id = server.get_current_room(user_id)
 
 	if room_id:
 
-		game = select_game(room_id)
+		game = server.select_game(room_id)
 
 		if not game:
 
-			delete_user_from_room(user_id)
+			server.delete_user_from_room(user_id)
 
 			text += 'You have left room number '+str(room_id)+'.\n'
 
-			if check_room_empty(room_id):
-				delete_room(room_id)
+			if server.check_room_empty(room_id):
+				server.delete_room(room_id)
 
 				text += 'The room was empty with your departure, so it has been deleted.\n'
 			else:
 				text_to_all += user_name + ' left the room.\n'
 
-			db_commit()
+			server.commit()
 
 		else:
 			text += 'A game is being played in this room! Someone must /end it before anyone can leave.\n'
@@ -238,12 +224,12 @@ def handler_begin(update, context):
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name
-	room_id = get_current_room(user_id)
+	room_id = server.get_current_room(user_id)
 
 	if room_id:
-		users = select_users_info_in_room(room_id)
+		users = server.select_users_info_in_room(room_id)
 
-		game = select_game(room_id)
+		game = server.select_game(room_id)
 		if not game:
 			text_to_all += user_name + ' has begun the game'
 		else:
@@ -252,15 +238,15 @@ def handler_begin(update, context):
 		game = uno.Game()
 		game.begin(len(users))
 
-		update_game(room_id, game)
+		server.update_game(room_id, game)
 
 		numbers = list(range(len(users)))
 		random.shuffle(numbers)
 
 		for for_player_number, for_user_id in users:
-			update_player_number(room_id, for_user_id, numbers.pop())
+			server.update_player_number(room_id, for_user_id, numbers.pop())
 
-		db_commit()
+		server.commit()
 
 		send_message_to_room(context, room_id, text_to_all)
 		send_message_to_room(context, room_id, lambda user_id: status(room_id, user_id, show_room_info=False))
@@ -272,15 +258,15 @@ def handler_end(update, context):
 	
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name
-	room_id = get_current_room(user_id)
+	room_id = server.get_current_room(user_id)
 
 	if room_id:
 
-		game = select_game(room_id)
+		game = server.select_game(room_id)
 
 		if game:
-			update_game(room_id, None)
-			db_commit()
+			server.update_game(room_id, None)
+			server.commit()
 
 			send_message_to_room(context, room_id, user_name + ' has ended the game')
 
@@ -295,7 +281,7 @@ def handler_chat(update, context):
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name
-	room_id = get_current_room(user_id)
+	room_id = server.get_current_room(user_id)
 
 	message = ' '.join(context.args)
 
@@ -316,14 +302,14 @@ def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name
-	room_id = get_current_room(user_id)
+	room_id = server.get_current_room(user_id)
 
 	if room_id:
 
 		message = update.message.text
 
-		game = select_game(room_id)
-		player_number = select_player_number(room_id, user_id)
+		game = server.select_game(room_id)
+		player_number = server.select_player_number(room_id, user_id)
 	
 		if game.winner == None:
 
@@ -335,16 +321,16 @@ def handler_text_message(update, context):
 
 					if play_result.success:
 
-						update_game(room_id, game)
-						db_commit()
+						server.update_game(room_id, game)
+						server.commit()
 
 						send_message_to_room(context, room_id, lambda x: user_name + ' ' + unoparser.play_result_string(play_result))
 
 						if game.winner == None:
 
-							current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 
-							get_and_apply_user_settings(current_user_id)
+							server.get_and_apply_user_settings(current_user_id)
 
 							# send message to player that is current
 							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
@@ -362,11 +348,11 @@ def handler_text_message(update, context):
 					update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
 
 			else:
-				current_user_id = select_user_id_from_player_number(room_id, game.current_player)
+				current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
 
 		else:
-			winner_user_id = select_user_id_from_player_number(room_id, game.winner)
+			winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
 			update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
 
 	else:
@@ -441,11 +427,11 @@ def send_message_to_user(context, user_id, text):
 
 def send_message_to_room(context, room_id, text, not_me=None):
 	if text and room_id:
-		for user_id in select_users_ids_in_room(room_id):
+		for user_id in server.select_users_ids_in_room(room_id):
 			if user_id != not_me:
 
 				if callable(text):
-					get_and_apply_user_settings(user_id)
+					server.get_and_apply_user_settings(user_id)
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
@@ -455,8 +441,8 @@ def status(room_id, user_id, show_room_info=True):
 	text = ''
 
 	if room_id:
-		users = select_users_info_in_room(room_id)
-		game = select_game(room_id)
+		users = server.select_users_info_in_room(room_id)
+		game = server.select_game(room_id)
 
 		if show_room_info:
 			num_users = len(users)
@@ -469,7 +455,7 @@ def status(room_id, user_id, show_room_info=True):
 
 		for for_player_number, for_user_id in users:
 
-			for_user_name = get_user_name(for_user_id)
+			for_user_name = server.get_user_name(for_user_id)
 
 			if game:
 				num_cards = len(game.player_cards[for_player_number])
@@ -534,7 +520,7 @@ def get_error_message():
 
 def get_and_apply_user_settings(user_id):
 
-	settings = get_user_settings(user_id)
+	settings = server.get_user_settings(user_id)
 
 	style = settings.get('style', 'short')
 
@@ -568,117 +554,7 @@ def get_user_name(user_id):
 
 	return u'({}) {}'.format(user_id, chat.first_name)
 
-## Database functions
 
-def get_current_room(user_id):
-	cur.execute("select room_id from uno_joins where user_id=%s limit 1;", (user_id,))
-	result = cur.fetchone()
-
-	if result:
-		return result[0]
-
-	return None
-
-def get_user_settings(user_id):
-	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
-	result = cur.fetchone()
-
-	if not result:
-		return {}
-	else:
-		columns = (description.name for description in cur.description)
-		settings = dict(zip(columns, result))
-
-		for key, value in settings.items():
-			if not value:
-				del settings[key]
-
-		return settings
-
-def select_users_info_in_room(room_id):
-	cur.execute("select player_number, user_id from uno_joins where room_id=%s order by player_number, user_id;", (room_id,))
-	return [(row[0], row[1],) for row in cur]
-
-def select_users_ids_in_room(room_id):
-	cur.execute("select user_id from uno_joins where room_id=%s order by user_id;", (room_id,))
-	return [row[0] for row in cur]
-
-def select_player_number(room_id, user_id):
-	cur.execute("select player_number from uno_joins where room_id=%s and user_id=%s limit 1;", (room_id, user_id))
-	return cur.fetchone()[0]
-
-def select_user_id_from_player_number(room_id, player_number):
-	cur.execute("select user_id from uno_joins where room_id=%s and player_number=%s limit 1;", (room_id, player_number))
-	return cur.fetchone()[0]
-
-def select_game(room_id):
-	cur.execute("select game_pickle from uno_rooms where id=%s limit 1;", (room_id,))
-	result = cur.fetchone()[0]
-
-	if result:
-		return pickle.loads(result)
-	else:
-		return None
-
-def check_room_empty(room_id):
-	cur.execute("select room_id from uno_joins where room_id=%s limit 1;", (room_id,))
-	result = cur.fetchone()
-
-	if result:
-		return False
-
-	return True
-
-def check_room_exists(room_id):
-	cur.execute("select id from uno_rooms where id=%s limit 1;", (room_id,))
-	result = cur.fetchone()
-
-	if result:
-		return True
-
-	return False
-
-def insert_room():
-	cur.execute("insert into uno_rooms default values returning id;")
-	room_id = cur.fetchone()[0]
-	# conn.commit()
-
-	return room_id
-
-def insert_user_to_room(room_id, user_id):
-	cur.execute("insert into uno_joins (room_id, user_id) values (%s, %s);", (room_id, user_id,))
-	# conn.commit()
-
-def update_game(room_id, game):
-	cur.execute("update uno_rooms set game_pickle=%s where id=%s;", (pickle.dumps(game), room_id,))
-	# conn.commit()
-
-def update_player_number(room_id, user_id, player_number):
-	cur.execute("update uno_joins set player_number=%s where room_id=%s and user_id=%s;", (player_number, room_id, user_id,))
-	# conn.commit()
-
-def update_user_settings(user_id, setting, value):
-
-	cur.execute(
-		sql.SQL("insert into uno_users (user_id, {settings}) values (%s, %s) "
-			"on conflict (user_id) do update set {settings} = excluded.{settings};")
-			.format(
-				settings=sql.Identifier(setting)
-			),
-		(user_id, value,)
-	)
-	# conn.commit()
-
-def delete_user_from_room(user_id):
-	cur.execute("delete from uno_joins where user_id=%s;", (user_id,))
-	# conn.commit()
-
-def delete_room(room_id):
-	cur.execute("delete from uno_rooms where id=%s;", (room_id,))
-	# conn.commit()
-
-def db_commit():
-	conn.commit()
 
 if __name__ == "__main__":
 	main()
