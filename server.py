@@ -5,6 +5,7 @@ import os
 import pickle
 
 import psycopg2
+from psycopg2 import sql
 
 # All possible settings and its possible values (first one is the default)
 all_settings = {

@@ -332,7 +332,7 @@ def handler_text_message(update, context):
 						settings = get_and_apply_user_settings(current_user_id)
 
 						play_number_text = ''
-						if settings.get('show_play_number', False):
+						if settings.get('show_play_number', 'false') == 'true':
 							play_number_text = '#' + str(game.current_play_number) + ': '
 
 						send_message_to_room(context, room_id, lambda x: play_number_text + user_name + ' ' + unoparser.play_result_string(play_result))
