@@ -250,7 +250,12 @@ def handler_begin(update, context):
 		server.commit()
 
 		send_message_to_room(context, room_id, text_to_all)
-		send_message_to_room(context, room_id, lambda user_id: status(room_id, user_id, show_room_info=False))
+
+		def get_user_status_text(user_id):
+			get_and_apply_user_settings()
+			return status(room_id, user_id, show_room_info=False)
+
+		send_message_to_room(context, room_id, get_user_status_text)
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>")
@@ -331,22 +336,26 @@ def handler_text_message(update, context):
 
 						current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 
-						settings = get_and_apply_user_settings(current_user_id)
+						def get_user_play_result_text(user_id):
+							settings = get_and_apply_user_settings(user_id)
 
-						play_number_text = ''
-						if settings.get('show_play_number', 'false') == 'true':
-							play_number_text = '#' + str(game.current_play_number) + ': '
+							play_number_text = ''
+							if settings.get('show_play_number', 'false') == 'true':
+								play_number_text = '#' + str(game.current_play_number) + ': '
 
-						send_message_to_room(context, room_id, lambda x: play_number_text + user_name + ' ' + unoparser.play_result_string(play_result))
+							return play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
+
+						send_message_to_room(context, room_id, get_user_play_result_text)
 
 						if game.winner == None:
 
 							# send message to player that is current
+							get_and_apply_user_settings(current_user_id)
 							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
 
 						else:
 
-							send_message_to_room(context, room_id, lambda x: user_name + ' won.')
+							send_message_to_room(context, room_id, user_name + ' won.')
 
 					else:
 
@@ -440,7 +449,6 @@ def send_message_to_room(context, room_id, text, not_me=None):
 			if user_id != not_me:
 
 				if callable(text):
-					get_and_apply_user_settings(user_id)
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
 					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
