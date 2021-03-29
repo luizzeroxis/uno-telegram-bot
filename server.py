@@ -32,14 +32,23 @@ def main():
 ## Database functions
 
 def get_user_settings(user_id):
-	cur.execute("select * from uno_users where user_id=%s limit 1;", (user_id,))
+
+	all_settings_list = list(all_settings)
+
+	cur.execute(
+		sql.SQL("select {fields} from uno_users where user_id=%s limit 1;")
+			.format(
+				fields=sql.SQL(',').join(all_settings_list)
+			),
+		(user_id,)
+	)
+
 	result = cur.fetchone()
 
 	if not result:
-		return {}
+		return {k: v[0] for k, v in all_settings.items()} # default values for all settings
 	else:
-		columns = (description.name for description in cur.description)
-		settings = dict(zip(columns, result))
+		settings = dict(zip(all_settings_list, result))
 
 		return settings
 
