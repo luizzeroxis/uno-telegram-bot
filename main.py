@@ -53,7 +53,7 @@ def main():
 	dp.add_handler(CommandHandler('error', handler_error))
 
 	# Message handlers
-	dp.add_handler(MessageHandler(Filters.text & Filters.private, handler_text_message))
+	dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_text_message))
 
 	dp.add_error_handler(error_handler)
 
