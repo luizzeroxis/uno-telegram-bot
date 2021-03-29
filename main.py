@@ -71,7 +71,7 @@ def handler_help(update, context):
 	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 def handler_settings(update, context):
-
+	
 	text = ''
 	user_id = update.message.from_user.id
 
@@ -252,7 +252,7 @@ def handler_begin(update, context):
 		send_message_to_room(context, room_id, text_to_all)
 
 		def get_user_status_text(user_id):
-			get_and_apply_user_settings()
+			get_and_apply_user_settings(user_id)
 			return status(room_id, user_id, show_room_info=False)
 
 		send_message_to_room(context, room_id, get_user_status_text)
