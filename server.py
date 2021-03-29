@@ -38,7 +38,7 @@ def get_user_settings(user_id):
 	cur.execute(
 		sql.SQL("select {fields} from uno_users where user_id=%s limit 1;")
 			.format(
-				fields=sql.SQL(',').join(all_settings_list)
+				fields=sql.SQL(',').join(sql.Identifier(n) for n in all_settings_list)
 			),
 		(user_id,)
 	)
