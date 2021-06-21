@@ -49,7 +49,7 @@ def main():
 
 	# Start the webhook
 	updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=TELEGRAM_BOT_TOKEN,
-		webhook_url=TELEGRAM_BOT_WEBHOOK + TELEGRAM_BOT_TOKEN, clean=True, allowed_updates=["message"])
+		webhook_url=TELEGRAM_BOT_WEBHOOK + TELEGRAM_BOT_TOKEN, drop_pending_updates=True, allowed_updates=["message"])
 	updater.idle()
 
 ## Bot handlers
