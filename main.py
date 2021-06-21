@@ -13,6 +13,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError
 
 bot = None
+dp = None
+
+module_handlers = []
 
 def main():
 
@@ -25,35 +28,22 @@ def main():
 	logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 	logger = logging.getLogger(__name__)
 
-	## Bot setup
-	# Set up the Updater
+	# Bot setup
 	updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
-
+	
 	global bot
 	bot = updater.bot
 
-	## Handlers
+	# Handlers
+	global dp
 	dp = updater.dispatcher
 
-	# Command handlers
+	## Command handlers
 	dp.add_handler(CommandHandler('start', handler_start))
 	dp.add_handler(CommandHandler('help', handler_help))
-	dp.add_handler(CommandHandler('settings', handler_settings))
+	dp.add_handler(CommandHandler('switch', handler_switch))
 
-	dp.add_handler(CommandHandler('status', handler_status))
-	dp.add_handler(CommandHandler('new', handler_new))
-	dp.add_handler(CommandHandler('join', handler_join))
-	dp.add_handler(CommandHandler('leave', handler_leave))
-	dp.add_handler(CommandHandler('begin', handler_begin))
-	dp.add_handler(CommandHandler('end', handler_end))
-
-	dp.add_handler(CommandHandler('chat', handler_chat))
-
-	# secret
-	dp.add_handler(CommandHandler('error', handler_error))
-
-	# Message handlers
-	dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_text_message))
+	module_load_uno()
 
 	dp.add_error_handler(error_handler)
 
@@ -65,10 +55,64 @@ def main():
 ## Bot handlers
 
 def handler_start(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+	handler_help(update, context)
 
 def handler_help(update, context):
 	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+def handler_switch(update, context):
+	if len(context.args) >= 1:
+		if context.args[0].lower() == "uno":
+			module_unload()
+			module_load_uno()
+		elif context.args[0].lower() == "test":
+			module_unload()
+			module_load_test()
+
+def module_load_uno():
+
+	global module_handlers
+	module_handlers = [
+
+		# Command handlers
+		dp.add_handler(CommandHandler('help', handler_help)),
+		dp.add_handler(CommandHandler('settings', handler_settings)),
+		
+		dp.add_handler(CommandHandler('status', handler_status)),
+		dp.add_handler(CommandHandler('new', handler_new)),
+		dp.add_handler(CommandHandler('join', handler_join)),
+		dp.add_handler(CommandHandler('leave', handler_leave)),
+		dp.add_handler(CommandHandler('begin', handler_begin)),
+		dp.add_handler(CommandHandler('end', handler_end)),
+
+		dp.add_handler(CommandHandler('chat', handler_chat)),
+
+		# secret
+		dp.add_handler(CommandHandler('error', handler_error)),
+
+		# Message handlers
+		dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_text_message)),
+
+	]
+
+def module_load_test():
+
+	global module_handlers
+	module_handlers = [
+
+		# Message handlers
+		dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_test_text_message)),
+
+	]
+
+def handler_test_text_message(update, context):
+	update.message.reply_text("Se você recebeu isso, parabéns. Como essa mensagem é pré-gravada, qualquer observação relacionada a sua performance é uma especulação da nossa parte. Por favor, despreze qualquer elogio não merecido.")
+
+def module_unload():
+
+	for module_handler in module_handlers:
+		dp.remove_handler(module_handler)
+
 
 def handler_settings(update, context):
 	
