@@ -65,9 +65,13 @@ def handler_switch(update, context):
 		if context.args[0].lower() == "uno":
 			module_unload()
 			module_load_uno()
+			update.message.reply_text("UNO module loaded");
 		elif context.args[0].lower() == "test":
 			module_unload()
 			module_load_test()
+			update.message.reply_text("Test module loaded")
+		else:
+			update.message.reply_text("No such module!")
 
 def module_load_uno():
 
@@ -95,6 +99,8 @@ def module_load_uno():
 
 	]
 
+	print('uno loaded')
+
 def module_load_test():
 
 	global module_handlers
@@ -104,6 +110,8 @@ def module_load_test():
 		dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_test_text_message)),
 
 	]
+
+	print('test loaded')
 
 def handler_test_text_message(update, context):
 	update.message.reply_text("Se você recebeu isso, parabéns. Como essa mensagem é pré-gravada, qualquer observação relacionada a sua performance é uma especulação da nossa parte. Por favor, despreze qualquer elogio não merecido.")
@@ -361,61 +369,66 @@ def handler_text_message(update, context):
 		game = server.select_game(room_id)
 		player_number = server.select_player_number(room_id, user_id)
 	
-		if game.winner == None:
+		if game:
 
-			if game.current_player == player_number:
+			if game.winner == None:
 
-				try:
-					play = unoparser.parse_play(message)
-					play_result = game.play(player_number, play)
+				if game.current_player == player_number:
 
-					if play_result.success:
+					try:
+						play = unoparser.parse_play(message)
+						play_result = game.play(player_number, play)
 
-						if play_result.draw_pile_has_emptied:
-							send_message_to_room(context, room_id,
-								'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
+						if play_result.success:
 
-						server.update_game(room_id, game)
-						server.commit()
+							if play_result.draw_pile_has_emptied:
+								send_message_to_room(context, room_id,
+									'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
 
-						current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
+							server.update_game(room_id, game)
+							server.commit()
 
-						def get_user_play_result_text(user_id):
-							settings = get_and_apply_user_settings(user_id)
+							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 
-							play_number_text = ''
-							if settings.get('show_play_number', 'false') == 'true':
-								play_number_text = '#' + str(game.current_play_number) + ': '
+							def get_user_play_result_text(user_id):
+								settings = get_and_apply_user_settings(user_id)
 
-							return play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
+								play_number_text = ''
+								if settings.get('show_play_number', 'false') == 'true':
+									play_number_text = '#' + str(game.current_play_number) + ': '
 
-						send_message_to_room(context, room_id, get_user_play_result_text)
+								return play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
 
-						if game.winner == None:
+							send_message_to_room(context, room_id, get_user_play_result_text)
 
-							# send message to player that is current
-							get_and_apply_user_settings(current_user_id)
-							context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
+							if game.winner == None:
+
+								# send message to player that is current
+								get_and_apply_user_settings(current_user_id)
+								context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
+
+							else:
+
+								send_message_to_room(context, room_id, user_name + ' won.')
 
 						else:
 
-							send_message_to_room(context, room_id, user_name + ' won.')
+							fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
+							update.message.reply_text(fail_reason)
 
-					else:
+					except unoparser.InputParsingError as e:
+						update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
 
-						fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
-						update.message.reply_text(fail_reason)
-
-				except unoparser.InputParsingError as e:
-					update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
+				else:
+					current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
+					update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
 
 			else:
-				current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
-				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
+				winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
+				update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
 
 		else:
-			winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
-			update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
+			update.message.reply_text('There is no game going on! Try /begin')
 
 	else:
 		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
