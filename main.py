@@ -74,30 +74,34 @@ def handler_switch(update, context):
 			update.message.reply_text("No such module!")
 
 def module_load_uno():
+	# TODO optimize this
 
 	global module_handlers
 	module_handlers = [
 
 		# Command handlers
-		dp.add_handler(CommandHandler('help', handler_help)),
-		dp.add_handler(CommandHandler('settings', handler_settings)),
+		CommandHandler('help', handler_help),
+		CommandHandler('settings', handler_settings),
 		
-		dp.add_handler(CommandHandler('status', handler_status)),
-		dp.add_handler(CommandHandler('new', handler_new)),
-		dp.add_handler(CommandHandler('join', handler_join)),
-		dp.add_handler(CommandHandler('leave', handler_leave)),
-		dp.add_handler(CommandHandler('begin', handler_begin)),
-		dp.add_handler(CommandHandler('end', handler_end)),
+		CommandHandler('status', handler_status),
+		CommandHandler('new', handler_new),
+		CommandHandler('join', handler_join),
+		CommandHandler('leave', handler_leave),
+		CommandHandler('begin', handler_begin),
+		CommandHandler('end', handler_end),
 
-		dp.add_handler(CommandHandler('chat', handler_chat)),
+		CommandHandler('chat', handler_chat),
 
 		# secret
-		dp.add_handler(CommandHandler('error', handler_error)),
+		CommandHandler('error', handler_error),
 
 		# Message handlers
-		dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_text_message)),
+		MessageHandler(Filters.text & Filters.chat_type.private, handler_text_message),
 
 	]
+
+	for module_handler in module_handlers:
+		dp.add_handler(module_handler)
 
 	print('uno loaded')
 
@@ -107,9 +111,12 @@ def module_load_test():
 	module_handlers = [
 
 		# Message handlers
-		dp.add_handler(MessageHandler(Filters.text & Filters.chat_type.private, handler_test_text_message)),
+		MessageHandler(Filters.text & Filters.chat_type.private, handler_test_text_message),
 
 	]
+
+	for module_handler in module_handlers:
+		dp.add_handler(module_handler)
 
 	print('test loaded')
 
