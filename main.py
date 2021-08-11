@@ -347,9 +347,6 @@ def handler_configs(update, context):
 					server.update_room_config(room_id, config, value)
 					server.commit()
 
-					configs[config] = value
-					apply_room_configs(configs, game)
-
 					send_message_to_room(context, room_id,
 						user_name + ' set room configuration ' + config + ' to ' + value + '\n')
 
@@ -384,6 +381,9 @@ def handler_text_message(update, context):
 		player_number = server.select_player_number(room_id, user_id)
 	
 		if game:
+
+			configs = server.get_room_configs(room_id)
+			apply_room_configs(configs, game)
 
 			if game.winner == None:
 
