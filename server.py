@@ -70,7 +70,7 @@ def get_room_configs(room_id):
 	all_configs_list = list(all_configs)
 
 	cur.execute(
-		sql.SQL("select {fields} from uno_rooms where room_id=%s limit 1;")
+		sql.SQL("select {fields} from uno_rooms where id=%s limit 1;")
 			.format(
 				fields=sql.SQL(',').join(sql.Identifier(n) for n in all_configs_list)
 			),
@@ -173,7 +173,7 @@ def update_user_settings(user_id, setting, value):
 def update_room_config(room_id, config, value):
 
 	cur.execute(
-		sql.SQL("update uno_rooms set {configs}=%s where room_id=%s limit 1;")
+		sql.SQL("update uno_rooms set {configs}=%s where id=%s limit 1;")
 			.format(
 				configs=sql.Identifier(config)
 			),
