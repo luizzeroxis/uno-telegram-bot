@@ -15,6 +15,13 @@ class Game():
 		# config
 		self.starting_num_player_cards = 7
 
+		self.draw_4_on_draw_4 = False
+		self.draw_2_on_draw_4 = False
+		self.disable_call_bluff = False
+		self.allow_play_non_drawn_cards = False
+		self.infinite_draws = False
+		self.allow_pass_without_draw = False
+
 		# init
 		self.reset()
 
@@ -153,9 +160,11 @@ class Game():
 
 		# When player has drawn from the pile last time
 		# Must be playing the drawn card, or pass
+		# Unless allow_play_non_drawn_cards is set
 		if self.drawn_card:
-			if card != self.drawn_card:
-				return PlayResult(fail_reason='not_drawn_card')
+			if not self.allow_play_non_drawn_cards:
+				if card != self.drawn_card:
+					return PlayResult(fail_reason='not_drawn_card')
 
 		# When draw card has been played last
 		if self.draw_amount != 0:
@@ -166,8 +175,35 @@ class Game():
 					return PlayResult(fail_reason='not_draw_2_or_4_or_draw')
 
 			# If +4, can't add anymore, must draw or call bluff
+			# Unless draw_4_on_draw_4 or draw_2_on_draw_4 is set
 			if self.current_kind == KIND_DRAW_4:
-				return PlayResult(fail_reason='not_draw_or_bluff')
+
+				if self.draw_4_on_draw_4 and not self.draw_2_on_draw_4:
+					if card.kind != KIND_DRAW_4:
+						if self.disable_call_bluff:
+							return PlayResult(fail_reason='not_draw_4_or_draw')  # No fail string
+
+						return PlayResult(fail_reason='not_draw_4_or_draw_or_bluff')  # No fail string
+
+				if not self.draw_4_on_draw_4 and self.draw_2_on_draw_4:
+					if card.kind != KIND_DRAW_2:
+						if self.disable_call_bluff:
+							return PlayResult(fail_reason='not_draw_2_or_draw')  # No fail string
+
+						return PlayResult(fail_reason='not_draw_2_or_draw_or_bluff')  # No fail string
+
+				if self.draw_4_on_draw_4 and self.draw_2_on_draw_4:
+					if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
+						if self.disable_call_bluff:
+							return PlayResult(fail_reason='not_draw_4_or_draw_2_or_draw')  # No fail string
+
+						return PlayResult(fail_reason='not_draw_4_or_draw_2_or_draw_or_bluff')  # No fail string
+
+				if not self.draw_4_on_draw_4 and not self.draw_2_on_draw_4:
+					if self.disable_call_bluff:
+						return PlayResult(fail_reason='not_draw')
+
+					return PlayResult(fail_reason='not_draw_or_bluff')
 
 		# Check if card matches current card in kind or color
 		if card.color != NO_COLOR and card.kind != self.current_kind and card.color != self.current_color:
@@ -216,8 +252,10 @@ class Game():
 	def play_draw(self):
 
 		# If player has drawn from the pile last time, can't do it again
+		# Unless infinite_draws is set
 		if self.drawn_card:
-			return PlayResult(fail_reason='already_drew')
+			if not self.infinite_draws:
+				return PlayResult(fail_reason='already_drew')
 
 		# If draw card has been played last, pick up those cards
 		if self.draw_amount != 0:
@@ -248,8 +286,10 @@ class Game():
 	def play_pass(self):
 
 		# Can only pass if has drawn card
+		# Unless allow_pass_without_draw is set
 		if not self.drawn_card:
-			return PlayResult(fail_reason='hasnt_drawn')
+			if not self.allow_pass_without_draw:
+				return PlayResult(fail_reason='hasnt_drawn')
 
 		self.drawn_card = None
 		self.sort_player_cards(self.current_player)
@@ -263,6 +303,9 @@ class Game():
 		return PlayResult(success=True, action=ACTION_PASS)
 
 	def play_call_bluff(self):
+
+		if self.disable_call_bluff:
+			return PlayResult(fail_reason='bluff_disabled')
 
 		if not self.can_call_bluff:
 			return PlayResult(fail_reason='last_not_draw_4')

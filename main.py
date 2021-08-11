@@ -48,6 +48,7 @@ def main():
 	dp.add_handler(CommandHandler('end', handler_end))
 
 	dp.add_handler(CommandHandler('chat', handler_chat))
+	dp.add_handler(CommandHandler('configs', handler_configs))
 
 	# secret
 	dp.add_handler(CommandHandler('error', handler_error))
@@ -92,7 +93,7 @@ def handler_settings(update, context):
 		if setting in server.all_settings:
 			default = server.all_settings[setting][0]
 			text += setting + ': ' + str(settings.get(setting, default)) + '\n'
-			text += 'Possible values: ' + ", ".join(server.all_settings[setting])
+			text += 'Possible values: ' + ", ".join(server.all_settings[setting]) + '\n'
 		else:
 			text += 'This setting does not exist!\n'
 
@@ -237,6 +238,12 @@ def handler_begin(update, context):
 			text_to_all += user_name + ' has rebegun the game'
 
 		game = uno.Game()
+
+		# Set room configs (TODO maybe automatically do this)
+
+		configs = server.get_room_configs(room_id)
+		apply_room_configs(configs, game)
+
 		game.begin(len(users))
 
 		server.update_game(room_id, game)
@@ -298,6 +305,65 @@ def handler_chat(update, context):
 		update.message.reply_text(text)
 
 	send_message_to_room(context, room_id, text_to_all, not_me=user_id)
+
+def handler_configs(update, context):
+
+	text, text_to_all = ''
+	user_id = update.message.from_user.id
+	user_name = update.message.from_user.name  # TODO check if there is no username throughout code
+	room_id = server.get_current_room(user_id)
+
+	if room_id:
+		
+		configs = server.get_room_configs(room_id)
+
+		if len(context.args) == 0:
+
+			text += 'Current configurations of room ' + str(room_id) + ':\n'
+
+			for config in server.all_configs:
+				default = server.all_configs[config][0]
+				text += config + ': ' + str(configs.get(config, default)) + '\n'
+
+		elif len(context.args) == 1:
+
+			config = context.args[0].lower()
+
+			if config in server.all_configs:
+				default = server.all_configs[config][0]
+				text += config + ': ' + str(configs.get(config, default)) + '\n'
+				text += 'Possible values: ' + ", ".join(server.all_configs[config]) + '\n'
+			else:
+				text += 'This configuration does not exist!\n'
+
+		elif len(context.args) >= 2:
+
+			config = context.args[0].lower()
+			value = context.args[1].lower()
+
+			if config in server.all_configs:
+				if value in server.all_configs[config]:
+
+					server.update_room_config(room_id, config, value)
+					server.commit()
+
+					configs[config] = value
+					apply_room_configs(configs, game)
+
+					send_message_to_room(context, room_id,
+						user_name + ' set room configuration ' + config + ' to ' + value + '\n')
+
+					return
+
+				else:
+					text += 'This value is not allowed for this configuration!\n'
+			else:
+				text += 'This configuration does not exist!\n'
+
+	else:
+		text += 'You cannot change room configuration if you are not in a room!\n'
+	
+	update.message.reply_text(text)
 
 def handler_error(update, context):
 
@@ -421,6 +487,7 @@ def help_text():
 		"/end - End game\n"
 		"/chat - Send a message to all in room\n"
 		"/settings - Change user settings\n"
+		"/configs - Change room configurations\n"
 		"\n"
 		"When in game, send a message to make a play.\n"
 		"d - Draw card(s)\n"
@@ -576,6 +643,13 @@ def get_user_name(user_id):
 
 	return u'({}) {}'.format(user_id, chat.first_name)
 
+def apply_room_configs(configs, game):
+	game.draw_4_on_draw_4 = (configs.get('draw_4_on_draw_4') == 'true')
+	game.draw_2_on_draw_4 = (configs.get('draw_2_on_draw_4') == 'true')
+	game.disable_call_bluff = (configs.get('disable_call_bluff') == 'true')
+	game.allow_play_non_drawn_cards = (configs.get('allow_play_non_drawn_cards') == 'true')
+	game.infinite_draws = (configs.get('infinite_draws') == 'true')
+	game.allow_pass_without_draw = (configs.get('allow_pass_without_draw') == 'true')
 
 
 if __name__ == "__main__":

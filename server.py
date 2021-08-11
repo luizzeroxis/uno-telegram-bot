@@ -13,6 +13,19 @@ all_settings = {
 	'show_play_number': ('false', 'true',),
 }
 
+# All possible room configs and its possible values (first one is the default)
+all_configs = {
+	# TODO
+	'draw_4_on_draw_4': ('false', 'true',),
+	'draw_2_on_draw_4': ('false', 'true',),
+	'disable_call_bluff': ('false', 'true',),
+	'allow_play_non_drawn_cards': ('false', 'true',),
+	'infinite_draws': ('false', 'true',),
+	'allow_pass_without_draw': ('false', 'true',),
+
+	# 'number_starting_cards': 7,
+}
+
 conn, cur = None, None
 
 def main():
@@ -51,6 +64,28 @@ def get_user_settings(user_id):
 		settings = dict(zip(all_settings_list, result))
 
 		return settings
+
+def get_room_configs(room_id):
+
+	all_configs_list = list(all_configs)
+
+	cur.execute(
+		sql.SQL("select {fields} from uno_rooms where room_id=%s limit 1;")
+			.format(
+				fields=sql.SQL(',').join(sql.Identifier(n) for n in all_configs_list)
+			),
+		(room_id,)
+	)
+
+	result = cur.fetchone()
+
+	if not results:  # this is never supposed to happen!
+		# return {k: v[0] for k, v in all_configs.items()} # default values for all configs
+		return None
+	else:
+		configs = dict(zip(all_configs_list, result))
+
+		return configs
 
 def get_current_room(user_id):
 	cur.execute("select room_id from uno_joins where user_id=%s limit 1;", (user_id,))
@@ -132,6 +167,17 @@ def update_user_settings(user_id, setting, value):
 				settings=sql.Identifier(setting)
 			),
 		(user_id, value,)
+	)
+	# conn.commit()
+
+def update_room_config(room_id, config, value):
+
+	cur.execute(
+		sql.SQL("update uno_rooms set {configs}=%s where room_id=%s limit 1;")
+			.format(
+				configs=sql.Identifier(config)
+			),
+		(value, room_id,)
 	)
 	# conn.commit()
 

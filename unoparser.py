@@ -134,7 +134,8 @@ def fail_reason_string(fail_reason):
 	elif fail_reason == 'last_not_draw_4':
 		return 'You cannot call a bluff if the previous player has not played a +4!'
 	else:
-		return 'You failed in a way that was literally impossible. Incredible!'
+		# return 'You failed in a way that was literally impossible. Incredible!'
+		return 'You failed in an unforeseen way! (' + str(fail_reason) + ')'
 
 def parse_play(string):
 

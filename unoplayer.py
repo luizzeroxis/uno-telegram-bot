@@ -17,6 +17,14 @@ def begin():
 
 	global game
 	game = uno.Game()
+
+	# game.draw_4_on_draw_4 = True
+	# game.draw_2_on_draw_4 = True
+	# game.disable_call_bluff = True
+	# game.allow_play_non_drawn_cards = True
+	# game.infinite_draws = True
+	# game.allow_pass_without_draw = True
+
 	game.begin(num_players)
 
 	status()
