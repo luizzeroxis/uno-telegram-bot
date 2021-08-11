@@ -79,7 +79,7 @@ def get_room_configs(room_id):
 
 	result = cur.fetchone()
 
-	if not results:  # this is never supposed to happen!
+	if not result:  # this is never supposed to happen!
 		# return {k: v[0] for k, v in all_configs.items()} # default values for all configs
 		return None
 	else:
