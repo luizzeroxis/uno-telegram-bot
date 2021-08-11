@@ -308,7 +308,7 @@ def handler_chat(update, context):
 
 def handler_configs(update, context):
 
-	text, text_to_all = ''
+	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	user_name = update.message.from_user.name  # TODO check if there is no username throughout code
 	room_id = server.get_current_room(user_id)
