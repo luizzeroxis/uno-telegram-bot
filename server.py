@@ -173,7 +173,7 @@ def update_user_settings(user_id, setting, value):
 def update_room_config(room_id, config, value):
 
 	cur.execute(
-		sql.SQL("update uno_rooms set {configs}=%s where id=%s limit 1;")
+		sql.SQL("update uno_rooms set {configs}=%s where id=%s;")
 			.format(
 				configs=sql.Identifier(config)
 			),
