@@ -24,6 +24,8 @@ With this bot, you can create and join rooms with other people and play UNO with
 
 **/settings** \<setting\> \<value\> - View or update your user settings.
 
+**/configs** \<config\> \<value\> - View or update the room's configurations.
+
 When in game, send a message with the following commands to play.
 
 **[color]\<kind\>[new color]** - Discard a card from your hand with the color and kind. If kind is a +4 or Wild, don't set the color before, but you have to set the new chosen color afterwards.
