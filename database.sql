@@ -63,8 +63,8 @@ CREATE TABLE public.uno_rooms (
     draw_2_on_draw_4 text DEFAULT 'false'::text NOT NULL,
     disable_call_bluff text DEFAULT 'false'::text NOT NULL,
     allow_play_non_drawn_cards text DEFAULT 'false'::text NOT NULL,
-    infinite_draws text DEFAULT 'false'::text NOT NULL,
-    allow_pass_without_draw text DEFAULT 'false'::text NOT NULL
+    allow_pass_without_draw text DEFAULT 'false'::text NOT NULL,
+    draw_pass_behavior text DEFAULT 'single_draw'::text NOT NULL
 );
 
 
