@@ -1,3 +1,5 @@
+begin;
+
 alter table uno_rooms
 	add column draw_4_on_draw_4
 		text not null default 'false',
@@ -11,3 +13,5 @@ alter table uno_rooms
 		text not null default 'false',
 	add column allow_pass_without_draw
 		text not null default 'false';
+
+commit;

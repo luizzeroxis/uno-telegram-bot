@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 13.3 (Ubuntu 13.3-1.pgdg20.04+1)
--- Dumped by pg_dump version 13.3
+-- Dumped from database version 13.2
+-- Dumped by pg_dump version 13.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -58,7 +58,13 @@ ALTER SEQUENCE public.uno_joins_id_seq OWNED BY public.uno_joins.id;
 
 CREATE TABLE public.uno_rooms (
     id integer NOT NULL,
-    game_pickle bytea
+    game_pickle bytea,
+    draw_4_on_draw_4 text DEFAULT 'false'::text NOT NULL,
+    draw_2_on_draw_4 text DEFAULT 'false'::text NOT NULL,
+    disable_call_bluff text DEFAULT 'false'::text NOT NULL,
+    allow_play_non_drawn_cards text DEFAULT 'false'::text NOT NULL,
+    infinite_draws text DEFAULT 'false'::text NOT NULL,
+    allow_pass_without_draw text DEFAULT 'false'::text NOT NULL
 );
 
 
