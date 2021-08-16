@@ -230,6 +230,8 @@ class Game():
 		# Remove card from player's hand
 		self.player_cards[self.current_player].remove(card)
 
+		self.sort_player_cards(self.current_player)
+
 		# If no cards in hand, player wins
 		if len(self.player_cards[self.current_player]) == 0:
 			self.winner = self.current_player
@@ -273,6 +275,8 @@ class Game():
 		else:
 
 			num_draw = 1
+
+			self.sort_player_cards(self.current_player)
 
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
