@@ -286,7 +286,7 @@ class Game():
 	def play_pass(self):
 
 		# If draw_pass_behavior is multiple_draws_disable_pass, can't pass
-		if self.draw_pass_behavior = 'multiple_draws_disable_pass':
+		if self.draw_pass_behavior == 'multiple_draws_disable_pass':
 			return PlayResult(fail_reason='cannot_pass')  # No fail string
 
 		# Can only pass if has drawn card
