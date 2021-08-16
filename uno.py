@@ -254,7 +254,7 @@ class Game():
 		# If player has drawn from the pile last time, can't do it again
 		# Unless draw_pass_behavior is not single_draw
 		if self.drawn_card:
-			if not self.draw_pass_behavior == 'single_draw':
+			if self.draw_pass_behavior == 'single_draw':
 				return PlayResult(fail_reason='already_drew')
 
 		# If draw card has been played last, pick up those cards
