@@ -129,7 +129,7 @@ def fail_reason_string(fail_reason):
 		return 'This card does not match the current card!'
 	elif fail_reason == 'already_drew':
 		return 'You already drew! Play that drawn card or pass.'
-	elif fail_reason == 'hasnt_drawn':
+	elif fail_reason == 'has_not_drawn':
 		return 'You cannot pass without drawing something!'
 	elif fail_reason == 'last_not_draw_4':
 		return 'You cannot call a bluff if the previous player has not played a +4!'

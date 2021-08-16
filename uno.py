@@ -19,8 +19,8 @@ class Game():
 		self.draw_2_on_draw_4 = False
 		self.disable_call_bluff = False
 		self.allow_play_non_drawn_cards = False
-		self.infinite_draws = False
 		self.allow_pass_without_draw = False
+		self.draw_pass_behavior = 'single_draw'
 
 		# init
 		self.reset()
@@ -252,9 +252,9 @@ class Game():
 	def play_draw(self):
 
 		# If player has drawn from the pile last time, can't do it again
-		# Unless infinite_draws is set
+		# Unless draw_pass_behavior is not single_draw
 		if self.drawn_card:
-			if not self.infinite_draws:
+			if not self.draw_pass_behavior == 'single_draw':
 				return PlayResult(fail_reason='already_drew')
 
 		# If draw card has been played last, pick up those cards
@@ -285,11 +285,15 @@ class Game():
 
 	def play_pass(self):
 
+		# If draw_pass_behavior is multiple_draws_disable_pass, can't pass
+		if self.draw_pass_behavior = 'multiple_draws_disable_pass':
+			return PlayResult(fail_reason='cannot_pass')  # No fail string
+
 		# Can only pass if has drawn card
 		# Unless allow_pass_without_draw is set
 		if not self.drawn_card:
 			if not self.allow_pass_without_draw:
-				return PlayResult(fail_reason='hasnt_drawn')
+				return PlayResult(fail_reason='has_not_drawn')
 
 		self.drawn_card = None
 		self.sort_player_cards(self.current_player)

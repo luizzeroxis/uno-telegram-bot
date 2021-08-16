@@ -239,8 +239,6 @@ def handler_begin(update, context):
 
 		game = uno.Game()
 
-		# Set room configs (TODO maybe automatically do this)
-
 		configs = server.get_room_configs(room_id)
 		apply_room_configs(configs, game)
 
@@ -644,12 +642,13 @@ def get_user_name(user_id):
 	return u'({}) {}'.format(user_id, chat.first_name)
 
 def apply_room_configs(configs, game):
+	# Set room configs (TODO maybe automatically do this)
 	game.draw_4_on_draw_4 = (configs.get('draw_4_on_draw_4') == 'true')
 	game.draw_2_on_draw_4 = (configs.get('draw_2_on_draw_4') == 'true')
 	game.disable_call_bluff = (configs.get('disable_call_bluff') == 'true')
 	game.allow_play_non_drawn_cards = (configs.get('allow_play_non_drawn_cards') == 'true')
-	game.infinite_draws = (configs.get('infinite_draws') == 'true')
 	game.allow_pass_without_draw = (configs.get('allow_pass_without_draw') == 'true')
+	game.draw_pass_behavior = (configs.get('draw_pass_behavior'))
 
 
 if __name__ == "__main__":

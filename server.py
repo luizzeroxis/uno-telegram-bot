@@ -20,8 +20,8 @@ all_configs = {
 	'draw_2_on_draw_4': ('false', 'true',),
 	'disable_call_bluff': ('false', 'true',),
 	'allow_play_non_drawn_cards': ('false', 'true',),
-	'infinite_draws': ('false', 'true',),
 	'allow_pass_without_draw': ('false', 'true',),
+	'draw_pass_behavior': ('single_draw', 'multiple_draws', 'multiple_draws_disable_pass'),
 
 	# 'number_starting_cards': 7,
 }
