@@ -230,8 +230,6 @@ class Game():
 		# Remove card from player's hand
 		self.player_cards[self.current_player].remove(card)
 
-		self.sort_player_cards(self.current_player)
-
 		# If no cards in hand, player wins
 		if len(self.player_cards[self.current_player]) == 0:
 			self.winner = self.current_player
@@ -240,6 +238,8 @@ class Game():
 		uno = False
 		if len(self.player_cards[self.current_player]) == 1:
 			uno = True
+
+		self.sort_player_cards(self.current_player)
 
 		# Special card effects
 		self.do_special_effects(card, new_color)
@@ -265,18 +265,16 @@ class Game():
 			num_draw = self.draw_amount
 
 			self.player_cards[self.current_player] += list(self.pick_cards(self.draw_amount))
-			self.sort_player_cards(self.current_player)
 
 			self.draw_amount = 0
 
+			self.sort_player_cards(self.current_player)
 			self.next_player()
 
 		# If not, pick only one card and continue playing
 		else:
 
 			num_draw = 1
-
-			self.sort_player_cards(self.current_player)
 
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
@@ -300,8 +298,8 @@ class Game():
 				return PlayResult(fail_reason='has_not_drawn')
 
 		self.drawn_card = None
-		self.sort_player_cards(self.current_player)
 
+		self.sort_player_cards(self.current_player)
 		self.next_player()
 
 		# Clear previous bluff
@@ -332,7 +330,6 @@ class Game():
 			num_draw = self.draw_amount + 2
 
 			self.player_cards[self.current_player] += list(self.pick_cards(num_draw))
-			self.sort_player_cards(self.current_player)
 
 		# Clear +4 effect
 		self.draw_amount = 0
@@ -340,6 +337,7 @@ class Game():
 		# Clear previous bluff
 		self.can_call_bluff = False
 
+		self.sort_player_cards(self.current_player)
 		self.next_player()
 
 		self.current_play_number += 1
