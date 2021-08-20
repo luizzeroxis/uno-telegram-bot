@@ -268,6 +268,8 @@ class Game():
 
 			num_draw = 1
 
+			self.sort_player_cards(self.current_player)
+
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
 
