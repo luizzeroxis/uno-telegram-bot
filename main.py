@@ -644,7 +644,7 @@ def get_user_name(user_id):
 def apply_room_configs(configs, game):
 	# Set room configs (TODO maybe automatically do this)
 	game.draw_4_on_draw_4 = (configs.get('draw_4_on_draw_4') == 'true')
-	game.draw_2_on_draw_4 = (configs.get('draw_2_on_draw_4') == 'true')
+	game.draw_2_on_draw_4 = (configs.get('draw_2_on_draw_4'))
 	game.disable_call_bluff = (configs.get('disable_call_bluff') == 'true')
 	game.allow_play_non_drawn_cards = (configs.get('allow_play_non_drawn_cards') == 'true')
 	game.allow_pass_without_draw = (configs.get('allow_pass_without_draw') == 'true')

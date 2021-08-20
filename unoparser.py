@@ -120,21 +120,28 @@ def fail_reason_string(fail_reason):
 	elif fail_reason == 'doesnt_have_card':
 		return 'You do not have that card in your hand!'
 	elif fail_reason == 'not_drawn_card':
-		return 'You can only play the card you drew or pass!'
-	elif fail_reason == 'not_draw_2_or_4_or_draw':
-		return 'You can only play +2, +4 or draw when the current card is +2 or +4!'
-	elif fail_reason == 'not_draw_or_bluff':
-		return 'You can only draw or call a bluff when the current card is +4!'
+		return 'You can only play the card you last drew!'
 	elif fail_reason == 'card_doesnt_match':
 		return 'This card does not match the current card!'
+	elif fail_reason == 'not_draw_2_or_draw_4':
+		return 'You can only play +2 or +4 or draw when the current card is +2!'
+	elif fail_reason == 'cant_draw_2_on_draw_4':
+		return 'You cannot play +2 on a +4!'
+	elif fail_reason == 'draw_2_different_color':
+		return 'You cannot play a +2 of a different color than the chosen +4 color!'
+	elif fail_reason == 'cant_draw_4_on_draw_4':
+		return 'You cannot play a +4 on a +4!'
 	elif fail_reason == 'already_drew':
-		return 'You already drew! Play that drawn card or pass.'
-	elif fail_reason == 'has_not_drawn':
-		return 'You cannot pass without drawing something!'
+		return 'You already drew, play that card or pass!'
+	elif fail_reason == 'cannot_pass':
+		return 'You shall not pass!'
+	elif fail_reason == 'hasnt_drawn':
+		return 'You cannot pass without drawing!'
+	elif fail_reason == 'bluff_disabled':
+		return 'Calling bluffs has been disabled!'
 	elif fail_reason == 'last_not_draw_4':
 		return 'You cannot call a bluff if the previous player has not played a +4!'
 	else:
-		# return 'You failed in a way that was literally impossible. Incredible!'
 		return 'You failed in an unforeseen way! (' + str(fail_reason) + ')'
 
 def parse_play(string):

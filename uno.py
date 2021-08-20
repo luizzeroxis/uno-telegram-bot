@@ -16,7 +16,7 @@ class Game():
 		self.starting_num_player_cards = 7
 
 		self.draw_4_on_draw_4 = False
-		self.draw_2_on_draw_4 = False
+		self.draw_2_on_draw_4 = 'false'
 		self.disable_call_bluff = False
 		self.allow_play_non_drawn_cards = False
 		self.allow_pass_without_draw = False
@@ -166,48 +166,40 @@ class Game():
 				if card != self.drawn_card:
 					return PlayResult(fail_reason='not_drawn_card')
 
-		# When draw card has been played last
-		if self.draw_amount != 0:
+		# Check if draws are required
+		if self.draw_amount == 0:
+			# When no draw card has been played last
 
-			# If +2, can add with +2 or +4
+			# If card has color
+			if card.color != NO_COLOR:
+				# If card doesn't match current kind or color
+				if not (card.kind == self.current_kind or card.color == self.current_color):
+					return PlayResult(fail_reason='card_doesnt_match')
+
+		else:
+			# When draw card has been played last
+
 			if self.current_kind == KIND_DRAW_2:
 				if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
-					return PlayResult(fail_reason='not_draw_2_or_4_or_draw')
+					return PlayResult(fail_reason='not_draw_2_or_draw_4')
 
-			# If +4, can't add anymore, must draw or call bluff
-			# Unless draw_4_on_draw_4 or draw_2_on_draw_4 is set
-			if self.current_kind == KIND_DRAW_4:
+			elif self.current_kind == KIND_DRAW_4:
+				if card.kind == KIND_DRAW_2:
+					if self.draw_2_on_draw_4 == 'false':
+						return PlayResult(fail_reason='cant_draw_2_on_draw_4')
+					
+					if self.draw_2_on_draw_4 == 'true':
+						# Only allow if +2 is the chosen +4 color
+						if card.color != self.current_color:
+							return PlayResult(fail_reason='draw_2_different_color')
 
-				if self.draw_4_on_draw_4 and not self.draw_2_on_draw_4:
-					if card.kind != KIND_DRAW_4:
-						if self.disable_call_bluff:
-							return PlayResult(fail_reason='not_draw_4_or_draw')  # No fail string
+					if self.draw_2_on_draw_4 == 'true_any_color':
+						pass
 
-						return PlayResult(fail_reason='not_draw_4_or_draw_or_bluff')  # No fail string
+				elif card.kind == KIND_DRAW_4:
+					if not self.draw_4_on_draw_4:
+						return PlayResult(fail_reason='cant_draw_4_on_draw_4')
 
-				if not self.draw_4_on_draw_4 and self.draw_2_on_draw_4:
-					if card.kind != KIND_DRAW_2:
-						if self.disable_call_bluff:
-							return PlayResult(fail_reason='not_draw_2_or_draw')  # No fail string
-
-						return PlayResult(fail_reason='not_draw_2_or_draw_or_bluff')  # No fail string
-
-				if self.draw_4_on_draw_4 and self.draw_2_on_draw_4:
-					if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
-						if self.disable_call_bluff:
-							return PlayResult(fail_reason='not_draw_4_or_draw_2_or_draw')  # No fail string
-
-						return PlayResult(fail_reason='not_draw_4_or_draw_2_or_draw_or_bluff')  # No fail string
-
-				if not self.draw_4_on_draw_4 and not self.draw_2_on_draw_4:
-					if self.disable_call_bluff:
-						return PlayResult(fail_reason='not_draw')
-
-					return PlayResult(fail_reason='not_draw_or_bluff')
-
-		# Check if card matches current card in kind or color
-		if card.color != NO_COLOR and card.kind != self.current_kind and card.color != self.current_color:
-			return PlayResult(fail_reason='card_doesnt_match')
 
 		# Clear previous bluff
 		self.can_call_bluff = False
@@ -295,7 +287,7 @@ class Game():
 		# Unless allow_pass_without_draw is set
 		if not self.drawn_card:
 			if not self.allow_pass_without_draw:
-				return PlayResult(fail_reason='has_not_drawn')
+				return PlayResult(fail_reason='hasnt_drawn')
 
 		self.drawn_card = None
 
