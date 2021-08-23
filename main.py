@@ -120,8 +120,7 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
-	get_and_apply_user_settings(user_id)
-	text = status(server.get_current_room(user_id), user_id)
+	text = get_status_text(server.get_current_room(user_id), user_id)
 
 	context.bot.send_message(chat_id=user_id, text=text)
 
@@ -254,8 +253,7 @@ def handler_begin(update, context):
 		send_message_to_room(room_id, text_to_all)
 
 		def get_user_status_text(user_id):
-			get_and_apply_user_settings(user_id)
-			return status(room_id, user_id, show_room_info=False)
+			return get_status_text(room_id, user_id, show_room_info=False)
 
 		send_message_to_room(room_id, get_user_status_text)
 
@@ -412,8 +410,10 @@ def handler_text_message(update, context):
 							if game.winner == None:
 
 								# send message to player that is current
-								get_and_apply_user_settings(current_user_id)
-								context.bot.send_message(chat_id=current_user_id, text='It is your turn.\n' + status(room_id, current_user_id, show_room_info=False))
+
+								text = get_status_text(room_id, current_user_id, show_your_turn=True, show_room_info=False)
+
+								bot.send_message(chat_id=current_user_id, text=text)
 
 							else:
 
@@ -515,7 +515,9 @@ def send_message_to_room(room_id, text, not_me=None):
 				else:
 					bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
 
-def status(room_id, user_id, show_room_info=True):
+def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False):
+
+	get_and_apply_user_settings(user_id)
 
 	text = ''
 
@@ -527,6 +529,9 @@ def status(room_id, user_id, show_room_info=True):
 			num_users = len(users)
 			text += ('You are currently in room number ' + str(room_id)
 				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n')
+
+		if show_your_turn:
+			text += 'It is your turn.\n'
 
 		if game:
 			if game.direction == -1:
