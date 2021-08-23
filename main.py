@@ -147,7 +147,6 @@ def handler_join(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = None
 
 	if len(context.args) > 0:
@@ -175,7 +174,7 @@ def handler_join(update, context):
 				server.commit()
 
 				text += 'Joined room ' + str(room_id) + '.\n'
-				text_to_all += user_name + ' joined the room.\n'
+				text_to_all += get_user_name(user_id) + ' joined the room.\n'
 			
 		else:
 			text += 'This can\'t possibly be a room! Come on!\n'
@@ -184,13 +183,12 @@ def handler_join(update, context):
 		text += 'You have not said the room you want to join! Try /join <room number>\n'
 
 	update.message.reply_text(text)
-	send_message_to_room(context, room_id, text_to_all)
+	send_message_to_room(room_id, text_to_all)
 
 def handler_leave(update, context):
 	
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = server.get_current_room(user_id)
 
 	if room_id:
@@ -208,7 +206,7 @@ def handler_leave(update, context):
 
 				text += 'The room was empty with your departure, so it has been deleted.\n'
 			else:
-				text_to_all += user_name + ' left the room.\n'
+				text_to_all += get_user_name(user_id) + ' left the room.\n'
 
 			server.commit()
 
@@ -219,13 +217,12 @@ def handler_leave(update, context):
 		text += 'You are not in any room right now!\n'
 
 	update.message.reply_text(text)
-	send_message_to_room(context, room_id, text_to_all)
+	send_message_to_room(room_id, text_to_all)
 
 def handler_begin(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = server.get_current_room(user_id)
 
 	if room_id:
@@ -233,9 +230,9 @@ def handler_begin(update, context):
 
 		game = server.select_game(room_id)
 		if not game:
-			text_to_all += user_name + ' has begun the game'
+			text_to_all += get_user_name(user_id) + ' has begun the game'
 		else:
-			text_to_all += user_name + ' has rebegun the game'
+			text_to_all += get_user_name(user_id) + ' has rebegun the game'
 
 		game = uno.Game()
 
@@ -254,13 +251,13 @@ def handler_begin(update, context):
 
 		server.commit()
 
-		send_message_to_room(context, room_id, text_to_all)
+		send_message_to_room(room_id, text_to_all)
 
 		def get_user_status_text(user_id):
 			get_and_apply_user_settings(user_id)
 			return status(room_id, user_id, show_room_info=False)
 
-		send_message_to_room(context, room_id, get_user_status_text)
+		send_message_to_room(room_id, get_user_status_text)
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>")
@@ -278,7 +275,7 @@ def handler_end(update, context):
 			server.update_game(room_id, None)
 			server.commit()
 
-			send_message_to_room(context, room_id, get_user_name(user_id) + ' has ended the game')
+			send_message_to_room(room_id, get_user_name(user_id) + ' has ended the game')
 
 		else:
 			update.message.reply_text("But there is no game going on!")
@@ -300,7 +297,7 @@ def handler_chat(update, context):
 		text += 'You cannot send chat messages if you are not in a room!\n'
 		update.message.reply_text(text)
 
-	send_message_to_room(context, room_id, text_to_all, not_me=user_id)
+	send_message_to_room(room_id, text_to_all, not_me=user_id)
 
 def handler_configs(update, context):
 
@@ -342,7 +339,7 @@ def handler_configs(update, context):
 					server.update_room_config(room_id, config, value)
 					server.commit()
 
-					send_message_to_room(context, room_id,
+					send_message_to_room(room_id,
 						get_user_name(user_id) + ' set room configuration ' + config + ' to ' + value + '\n')
 
 					return
@@ -355,7 +352,8 @@ def handler_configs(update, context):
 	else:
 		text += 'You cannot change room configuration if you are not in a room!\n'
 	
-	update.message.reply_text(text)
+	if text:
+		update.message.reply_text(text)
 
 def handler_error(update, context):
 
@@ -365,7 +363,6 @@ def handler_error(update, context):
 def handler_text_message(update, context):
 	
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = server.get_current_room(user_id)
 
 	if room_id:
@@ -391,7 +388,7 @@ def handler_text_message(update, context):
 						if play_result.success:
 
 							if play_result.draw_pile_has_emptied:
-								send_message_to_room(context, room_id,
+								send_message_to_room(room_id,
 									'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
 
 							server.update_game(room_id, game)
@@ -399,8 +396,10 @@ def handler_text_message(update, context):
 
 							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
 
-							def get_user_play_result_text(user_id):
-								settings = get_and_apply_user_settings(user_id)
+							user_name = get_user_name(user_id)
+
+							def get_user_play_result_text(to_user_id):
+								settings = get_and_apply_user_settings(to_user_id)
 
 								play_number_text = ''
 								if settings.get('show_play_number', 'false') == 'true':
@@ -408,7 +407,7 @@ def handler_text_message(update, context):
 
 								return play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
 
-							send_message_to_room(context, room_id, get_user_play_result_text)
+							send_message_to_room(room_id, get_user_play_result_text)
 
 							if game.winner == None:
 
@@ -418,7 +417,7 @@ def handler_text_message(update, context):
 
 							else:
 
-								send_message_to_room(context, room_id, user_name + ' won.')
+								send_message_to_room(room_id, user_name + ' won.')
 
 						else:
 
@@ -506,15 +505,15 @@ def string_to_positive_integer(string):
 	if number >= 0:
 		return number
 
-def send_message_to_room(context, room_id, text, not_me=None):
+def send_message_to_room(room_id, text, not_me=None):
 	if text and room_id:
 		for user_id in server.select_users_ids_in_room(room_id):
 			if user_id != not_me:
 
 				if callable(text):
-					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
+					bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
 				else:
-					context.bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
+					bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
 
 def status(room_id, user_id, show_room_info=True):
 
