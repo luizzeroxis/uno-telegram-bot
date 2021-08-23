@@ -123,7 +123,7 @@ def handler_status(update, context):
 	get_and_apply_user_settings(user_id)
 	text = status(server.get_current_room(user_id), user_id)
 
-	send_message_to_user(context, user_id, text)
+	context.bot.send_message(chat_id=user_id, text=text)
 
 def handler_new(update, context):
 	
@@ -268,7 +268,6 @@ def handler_begin(update, context):
 def handler_end(update, context):
 	
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = server.get_current_room(user_id)
 
 	if room_id:
@@ -279,7 +278,7 @@ def handler_end(update, context):
 			server.update_game(room_id, None)
 			server.commit()
 
-			send_message_to_room(context, room_id, user_name + ' has ended the game')
+			send_message_to_room(context, room_id, get_user_name(user_id) + ' has ended the game')
 
 		else:
 			update.message.reply_text("But there is no game going on!")
@@ -291,13 +290,12 @@ def handler_chat(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name
 	room_id = server.get_current_room(user_id)
 
 	message = ' '.join(context.args)
 
 	if room_id:
-		text_to_all += user_name + ': ' + message
+		text_to_all += get_user_name(user_id) + ': ' + message
 	else:
 		text += 'You cannot send chat messages if you are not in a room!\n'
 		update.message.reply_text(text)
@@ -308,7 +306,6 @@ def handler_configs(update, context):
 
 	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
-	user_name = update.message.from_user.name  # TODO check if there is no username throughout code
 	room_id = server.get_current_room(user_id)
 
 	if room_id:
@@ -346,7 +343,7 @@ def handler_configs(update, context):
 					server.commit()
 
 					send_message_to_room(context, room_id,
-						user_name + ' set room configuration ' + config + ' to ' + value + '\n')
+						get_user_name(user_id) + ' set room configuration ' + config + ' to ' + value + '\n')
 
 					return
 
@@ -363,7 +360,7 @@ def handler_configs(update, context):
 def handler_error(update, context):
 
 	user_id = update.message.from_user.id
-	send_message_to_user(context, user_id, get_error_message())
+	context.bot.send_message(chat_id=user_id, text=get_error_message())
 
 def handler_text_message(update, context):
 	
@@ -467,7 +464,7 @@ def error_handler(update, context):
 		# handle all other telegram related errors
 		logging.exception('Uncaught')
 	except Exception as e:
-		send_message_to_user(context, update.message.from_user.id, get_error_message())
+		context.bot.send_message(chat_id=update.message.from_user.id, text=get_error_message())
 		logging.exception('Uncaught')
 
 ## Helper functions
@@ -508,10 +505,6 @@ def string_to_positive_integer(string):
 
 	if number >= 0:
 		return number
-
-def send_message_to_user(context, user_id, text):
-	if text:
-		context.bot.send_message(chat_id=user_id, text=text)
 
 def send_message_to_room(context, room_id, text, not_me=None):
 	if text and room_id:
