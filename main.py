@@ -120,9 +120,10 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
+	settings = settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
-	context.bot.send_message(chat_id=user_id, text=text)
+	bot.send_message(user_id, text)
 
 def handler_new(update, context):
 	
@@ -253,6 +254,7 @@ def handler_begin(update, context):
 		send_message_to_room(room_id, text_to_all)
 
 		def get_user_status_text(user_id):
+			settings = get_and_apply_user_settings(user_id)
 			return get_status_text(room_id, user_id, show_room_info=False)
 
 		send_message_to_room(room_id, get_user_status_text)
@@ -356,7 +358,7 @@ def handler_configs(update, context):
 def handler_error(update, context):
 
 	user_id = update.message.from_user.id
-	context.bot.send_message(chat_id=user_id, text=get_error_message())
+	bot.send_message(user_id, get_error_message())
 
 def handler_text_message(update, context):
 	
@@ -396,31 +398,28 @@ def handler_text_message(update, context):
 
 							user_name = get_user_name(user_id)
 
-							def get_user_play_result_text(to_user_id):
-								settings = get_and_apply_user_settings(to_user_id)
+							# For all users in room...
+							for room_user_id in server.select_users_ids_in_room(room_id):
+								settings = get_and_apply_user_settings(room_user_id)
 
+								# Send made play
 								play_number_text = ''
 								if settings.get('show_play_number', 'false') == 'true':
 									play_number_text = '#' + str(game.current_play_number) + ': '
 
-								return play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
+								play_result_text = play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
+								bot.send_message(room_user_id, play_result_text)
 
-							send_message_to_room(room_id, get_user_play_result_text)
+								# Send if someone won
+								if game.winner != None:
+									bot.send_message(room_user_id, user_name + ' won.')
 
-							if game.winner == None:
-
-								# send message to player that is current
-
-								text = get_status_text(room_id, current_user_id, show_your_turn=True, show_room_info=False)
-
-								bot.send_message(chat_id=current_user_id, text=text)
-
-							else:
-
-								send_message_to_room(room_id, user_name + ' won.')
+								# Send status to current player
+								if room_user_id == current_user_id:
+									text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
+									bot.send_message(room_user_id, text)
 
 						else:
-
 							fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
 							update.message.reply_text(fail_reason)
 
@@ -463,7 +462,7 @@ def error_handler(update, context):
 		# handle all other telegram related errors
 		logging.exception('Uncaught')
 	except Exception as e:
-		context.bot.send_message(chat_id=update.message.from_user.id, text=get_error_message())
+		context.bot.send_message(update.message.from_user.id, get_error_message())
 		logging.exception('Uncaught')
 
 ## Helper functions
@@ -511,13 +510,13 @@ def send_message_to_room(room_id, text, not_me=None):
 			if user_id != not_me:
 
 				if callable(text):
-					bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text(user_id))
+					new_text = text(user_id)
+					if new_text:
+						bot.send_message(user_id, new_text, disable_web_page_preview=True)
 				else:
-					bot.send_message(chat_id=user_id, disable_web_page_preview=True, text=text)
+					bot.send_message(user_id, text, disable_web_page_preview=True)
 
 def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False):
-
-	get_and_apply_user_settings(user_id)
 
 	text = ''
 
