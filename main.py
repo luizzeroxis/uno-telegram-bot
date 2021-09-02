@@ -462,7 +462,7 @@ def error_handler(update, context):
 		# handle all other telegram related errors
 		logging.exception('Uncaught')
 	except Exception as e:
-		context.bot.send_message(update.message.from_user.id, get_error_message())
+		bot.send_message(update.message.from_user.id, get_error_message())
 		logging.exception('Uncaught')
 
 ## Helper functions
@@ -560,8 +560,8 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 
 		if game:
 
-			text += 'Current card: ' + unoparser.card_string(game.get_current_card()) + '\n'
-			if game.current_color != game.get_current_card().color:
+			text += 'Current card: ' + unoparser.card_string(game.current_card) + '\n'
+			if game.current_color != game.current_card.color:
 				text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
 
 			player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))

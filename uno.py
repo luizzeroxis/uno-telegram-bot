@@ -68,12 +68,6 @@ class Game():
 			self.player_cards.append(list(self.pick_cards(self.starting_num_player_cards)))
 			self.sort_player_cards(player)
 
-	def load(self):
-		pass
-
-	def save(self):
-		pass
-
 	def set_current_card(self, card):
 		self.current_card = card
 		self.current_kind = card.kind
@@ -337,18 +331,12 @@ class Game():
 		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
-	def get_current_card(self):
-		return self.current_card
-
-	def get_current_player_cards(self):
-		return self.player_cards[self.current_player]
-
-	def get_num_players_cards(self):
-		for player, cards in enumerate(self.player_cards):
-			yield (player, len(cards))
-
 	def get_next_player(self):
 		return (self.current_player + self.direction) % self.num_players
+
+	def get_plays(self):
+		pass
+
 
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])

@@ -83,8 +83,8 @@ def status():
 
 		text += '\n'
 
-	text += 'Current card: ' + unoparser.card_string(game.get_current_card()) + '\n'
-	if game.current_color != game.get_current_card().color:
+	text += 'Current card: ' + unoparser.card_string(game.current_card) + '\n'
+	if game.current_color != game.current_card.color:
 		text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
 
 	player_number = game.current_player
