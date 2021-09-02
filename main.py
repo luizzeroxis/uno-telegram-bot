@@ -377,71 +377,77 @@ def handler_text_message(update, context):
 			configs = server.get_room_configs(room_id)
 			apply_room_configs(configs, game)
 
-			if game.winner == None:
-
-				if game.current_player == player_number:
-
-					bluffed_player = game.previous_player
-
-					try:
-						play = unoparser.parse_play(message)
-						play_result = game.play(player_number, play)
-
-						if play_result.success:
-
-							if play_result.draw_pile_has_emptied:
-								send_message_to_room(room_id,
-									'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
-
-							server.update_game(room_id, game)
-							server.commit()
-
-							current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
-
-							user_name = get_user_name(user_id)
-
-							if play_result.action == uno.ACTION_CALL_BLUFF:
-								bluffed_user_id = server.select_user_id_from_player_number(room_id, bluffed_player)
-								bluffed_user_name = get_user_name(bluffed_user_id)
-							else:
-								bluffed_user_name = None
-
-							# For all users in room...
-							for room_user_id in server.select_users_ids_in_room(room_id):
-								settings = get_and_apply_user_settings(room_user_id)
-
-								# Send made play
-								play_number_text = ''
-								if settings.get('show_play_number', 'false') == 'true':
-									play_number_text = '#' + str(game.current_play_number) + ': '
-
-								play_result_text = play_number_text + unoparser.play_result_string(play_result, user_name, bluffed_user_name)
-								bot.send_message(room_user_id, play_result_text)
-
-								# Send if someone won
-								if game.winner != None:
-									bot.send_message(room_user_id, user_name + ' won.')
-									continue
-
-								# Send status to current player
-								if room_user_id == current_user_id:
-									text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
-									bot.send_message(room_user_id, text)
-
-						else:
-							fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
-							update.message.reply_text(fail_reason)
-
-					except unoparser.InputParsingError as e:
-						update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
-
-				else:
-					current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
-					update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
-
-			else:
+			# Check if someone has already won the game
+			if game.winner != None:
 				winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
 				update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
+
+			# Check if is the current player
+			if game.current_player != player_number:
+				current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
+				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
+				return
+
+			# Try to parse the user text
+			try:
+				play = unoparser.parse_play(message)
+
+			except unoparser.InputParsingError as e:
+				update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
+				return
+
+			bluffed_player = game.previous_player
+
+			# Execute the play
+			play_result = game.play(player_number, play)
+
+			# If failed, send reason
+			if not play_result.success:
+				fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
+				update.message.reply_text(fail_reason)
+				return
+
+			if play_result.draw_pile_has_emptied:
+				send_message_to_room(room_id,
+					'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
+
+			# Store game in database
+			server.update_game(room_id, game)
+			server.commit()
+
+			# Send info messages
+
+			current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
+
+			user_name = get_user_name(user_id)
+
+			if play_result.action == uno.ACTION_CALL_BLUFF:
+				bluffed_user_id = server.select_user_id_from_player_number(room_id, bluffed_player)
+				bluffed_user_name = get_user_name(bluffed_user_id)
+			else:
+				bluffed_user_name = None
+
+			# For all users in room...
+			for room_user_id in server.select_users_ids_in_room(room_id):
+				settings = get_and_apply_user_settings(room_user_id)
+
+				# Send made play
+				play_number_text = ''
+				if settings.get('show_play_number', 'false') == 'true':
+					play_number_text = '#' + str(game.current_play_number) + ': '
+
+				play_result_text = play_number_text + unoparser.play_result_string(play_result, user_name, bluffed_user_name)
+				bot.send_message(room_user_id, play_result_text)
+
+				# Send if someone won
+				if game.winner != None:
+					bot.send_message(room_user_id, user_name + ' won.')
+					continue
+
+				# Send status to current player
+				if room_user_id == current_user_id:
+					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
+					bot.send_message(room_user_id, text)
 
 		else:
 			update.message.reply_text('There is no game going on! Try /begin')
