@@ -33,6 +33,7 @@ class Game():
 		self.current_kind = None
 		self.current_color = None
 		self.current_player = 0
+		self.previous_player = None
 		self.direction = 1
 		self.drawn_card = None
 		self.draw_amount = 0
@@ -211,7 +212,7 @@ class Game():
 					if intent.card.kind != KIND_DRAW_4:
 						self.previous_bluffed = True
 						break
-						
+
 		# Make card the current card
 		self.set_current_card(card)
 

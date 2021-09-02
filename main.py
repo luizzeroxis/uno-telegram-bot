@@ -381,6 +381,8 @@ def handler_text_message(update, context):
 
 				if game.current_player == player_number:
 
+					bluffed_player = game.previous_player
+
 					try:
 						play = unoparser.parse_play(message)
 						play_result = game.play(player_number, play)
@@ -398,6 +400,12 @@ def handler_text_message(update, context):
 
 							user_name = get_user_name(user_id)
 
+							if play_result.action == uno.ACTION_CALL_BLUFF:
+								bluffed_user_id = server.select_user_id_from_player_number(room_id, bluffed_player)
+								bluffed_user_name = get_user_name(bluffed_user_id)
+							else:
+								bluffed_user_name = None
+
 							# For all users in room...
 							for room_user_id in server.select_users_ids_in_room(room_id):
 								settings = get_and_apply_user_settings(room_user_id)
@@ -407,12 +415,13 @@ def handler_text_message(update, context):
 								if settings.get('show_play_number', 'false') == 'true':
 									play_number_text = '#' + str(game.current_play_number) + ': '
 
-								play_result_text = play_number_text + user_name + ' ' + unoparser.play_result_string(play_result)
+								play_result_text = play_number_text + unoparser.play_result_string(play_result, user_name, bluffed_user_name)
 								bot.send_message(room_user_id, play_result_text)
 
 								# Send if someone won
 								if game.winner != None:
 									bot.send_message(room_user_id, user_name + ' won.')
+									continue
 
 								# Send status to current player
 								if room_user_id == current_user_id:
@@ -503,6 +512,7 @@ def string_to_positive_integer(string):
 
 	if number >= 0:
 		return number
+	return None
 
 def send_message_to_room(room_id, text, not_me=None):
 	if text and room_id:
@@ -633,9 +643,9 @@ def get_user_name(user_id):
 		return '@{}'.format(chat.username)
 		
 	if chat.last_name:
-		return u'({}) {} {}'.format(user_id, chat.first_name, chat.last_name)
+		return '({}) {} {}'.format(user_id, chat.first_name, chat.last_name)
 
-	return u'({}) {}'.format(user_id, chat.first_name)
+	return '({}) {}'.format(user_id, chat.first_name)
 
 def apply_room_configs(configs, game):
 	# Set room configs (TODO maybe automatically do this)

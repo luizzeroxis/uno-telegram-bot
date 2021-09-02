@@ -18,12 +18,12 @@ def begin():
 	global game
 	game = uno.Game()
 
-	# game.draw_4_on_draw_4 = True
-	# game.draw_2_on_draw_4 = True
-	# game.disable_call_bluff = True
-	# game.allow_play_non_drawn_cards = True
-	# game.infinite_draws = True
-	# game.allow_pass_without_draw = True
+	# game.draw_4_on_draw_4 = False
+	# game.draw_2_on_draw_4 = 'false'
+	# game.disable_call_bluff = False
+	# game.allow_play_non_drawn_cards = False
+	# game.allow_pass_without_draw = False
+	# game.draw_pass_behavior = 'single_draw'
 
 	game.begin(num_players)
 
@@ -32,6 +32,7 @@ def begin():
 def play():
 
 	playing_player = game.current_player
+	playing_previous_player = game.previous_player
 
 	play = ask_input(str(game.current_player) + "> ", parse_play, once=True)
 	if not play:
@@ -40,7 +41,7 @@ def play():
 	play_result = game.play(game.current_player, play)
 
 	if play_result.success:
-		print("#" + str(game.current_play_number) + ": " + str(playing_player) + " " + unoparser.play_result_string(play_result))
+		print("#" + str(game.current_play_number) + ": " + unoparser.play_result_string(play_result, playing_player, playing_previous_player))
 		status()
 		return True
 	else:
@@ -57,7 +58,7 @@ def play_until_end():
 	while game.winner == None:
 		play()
 
-	print(game.winner + ' won.')
+	print(str(game.winner) + ' won.')
 
 def status():
 
@@ -123,6 +124,10 @@ def parse_pos_int(string):
 def parse_play(message):
 
 	global game
+
+	if message == 'pdb':
+		import pdb; pdb.set_trace()
+		return None
 
 	if message == 'give +4':
 		game.player_cards[game.current_player] += [uno.Card(uno.KIND_DRAW_4, uno.NO_COLOR)]

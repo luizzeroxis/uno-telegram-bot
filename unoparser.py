@@ -81,9 +81,9 @@ def card_kind_string(card_kind):
 def card_color_string(card_color):
 	return COLOR_STRINGS[card_color]
 
-def play_result_string(play_result):
+def play_result_string(play_result, current_player_name, last_player_name=None):
 
-	string = ''
+	string = str(current_player_name) + ' '
 
 	if play_result.action == uno.ACTION_PLAY:
 		string += 'played '
@@ -104,12 +104,12 @@ def play_result_string(play_result):
 		string += 'passed.'
 
 	elif play_result.action == uno.ACTION_CALL_BLUFF:
-		string += 'called last player\'s bluff... '
+		string += 'called ' + str(last_player_name) + '\'s bluff... '
 
 		if play_result.bluffed:
-			string += 'and it was a bluff. Last player received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
+			string += 'and it was a bluff. ' + str(last_player_name) + ' received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
 		else:
-			string += 'and it was not a bluff. Current player received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
+			string += 'and it was not a bluff. ' + str(current_player_name) + ' received ' + str(play_result.num_draw) + ' ' + plural(play_result.num_draw, 'card', 'cards') + '.'
 
 	return string
 
