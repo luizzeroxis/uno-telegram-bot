@@ -138,63 +138,27 @@ class Game():
 
 		self.draw_pile_has_emptied = False
 
-		if play.action == ACTION_PLAY:
-			return self.play_card(play.card, play.new_color)
-		elif play.action == ACTION_DRAW:
-			return self.play_draw()
-		elif play.action == ACTION_PASS:
-			return self.play_pass()
-		elif play.action == ACTION_CALL_BLUFF:
-			return self.play_call_bluff()
+		for intent in self.get_play_intents():
+			if intent.action == play.action and intent.card == play.card:
+				
+				if intent.can_play:
+					if play.action == ACTION_PLAY:
+						return self.play_card(play.card, play.new_color)
+					elif play.action == ACTION_DRAW:
+						return self.play_draw()
+					elif play.action == ACTION_PASS:
+						return self.play_pass()
+					elif play.action == ACTION_CALL_BLUFF:
+						return self.play_call_bluff()
 
-	def play_card(self, card, new_color):
+				else:
+					return PlayResult(fail_reason=intent.fail_reason)
 
-		# Check if player has the card
-		if card not in self.player_cards[self.current_player]:
+		if play.card not in self.player_cards[self.current_player]:
 			return PlayResult(fail_reason='doesnt_have_card')
 
-		# When player has drawn from the pile last time
-		# Must be playing the drawn card, or pass
-		# Unless allow_play_non_drawn_cards is set
-		if self.drawn_card:
-			if not self.allow_play_non_drawn_cards:
-				if card != self.drawn_card:
-					return PlayResult(fail_reason='not_drawn_card')
 
-		# Check if draws are required
-		if self.draw_amount == 0:
-			# When no draw card has been played last
-
-			# If card has color
-			if card.color != NO_COLOR:
-				# If card doesn't match current kind or color
-				if not (card.kind == self.current_kind or card.color == self.current_color):
-					return PlayResult(fail_reason='card_doesnt_match')
-
-		else:
-			# When draw card has been played last
-
-			if self.current_kind == KIND_DRAW_2:
-				if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
-					return PlayResult(fail_reason='not_draw_2_or_draw_4')
-
-			elif self.current_kind == KIND_DRAW_4:
-				if card.kind == KIND_DRAW_2:
-					if self.draw_2_on_draw_4 == 'false':
-						return PlayResult(fail_reason='cant_draw_2_on_draw_4')
-					
-					if self.draw_2_on_draw_4 == 'true':
-						# Only allow if +2 is the chosen +4 color
-						if card.color != self.current_color:
-							return PlayResult(fail_reason='draw_2_different_color')
-
-					if self.draw_2_on_draw_4 == 'true_any_color':
-						pass
-
-				elif card.kind == KIND_DRAW_4:
-					if not self.draw_4_on_draw_4:
-						return PlayResult(fail_reason='cant_draw_4_on_draw_4')
-
+	def play_card(self, card, new_color):
 
 		# Clear previous bluff
 		self.can_call_bluff = False
@@ -242,12 +206,6 @@ class Game():
 
 	def play_draw(self):
 
-		# If player has drawn from the pile last time, can't do it again
-		# Unless draw_pass_behavior is not single_draw
-		if self.drawn_card:
-			if self.draw_pass_behavior == 'single_draw':
-				return PlayResult(fail_reason='already_drew')
-
 		# If draw card has been played last, pick up those cards
 		if self.draw_amount != 0:
 
@@ -278,16 +236,6 @@ class Game():
 
 	def play_pass(self):
 
-		# If draw_pass_behavior is multiple_draws_disable_pass, can't pass
-		if self.draw_pass_behavior == 'multiple_draws_disable_pass':
-			return PlayResult(fail_reason='cannot_pass')  # No fail string
-
-		# Can only pass if has drawn card
-		# Unless allow_pass_without_draw is set
-		if not self.drawn_card:
-			if not self.allow_pass_without_draw:
-				return PlayResult(fail_reason='hasnt_drawn')
-
 		self.drawn_card = None
 
 		self.sort_player_cards(self.current_player)
@@ -300,12 +248,6 @@ class Game():
 		return PlayResult(success=True, action=ACTION_PASS)
 
 	def play_call_bluff(self):
-
-		if self.disable_call_bluff:
-			return PlayResult(fail_reason='bluff_disabled')
-
-		if not self.can_call_bluff:
-			return PlayResult(fail_reason='last_not_draw_4')
 
 		# If bluffed, previous player has to draw stacked draw card amount
 		if self.previous_bluffed:
@@ -408,9 +350,11 @@ class Game():
 
 	def get_play_intent_pass(self):
 
+		# Config for disallowing passing
 		if self.draw_pass_behavior == 'multiple_draws_disable_pass':
 			return PlayIntent(ACTION_PASS, can_play=False, fail_reason='cannot_pass')
 
+		# Config for disallowing passing if has not drawn
 		if not self.allow_pass_without_draw:
 			if not self.drawn_card:
 				return PlayIntent(ACTION_PASS, can_play=False, fail_reason='hasnt_drawn')
@@ -424,6 +368,8 @@ class Game():
 
 		if not self.can_call_bluff:
 			return PlayIntent(ACTION_CALL_BLUFF, can_play=False, fail_reason='last_not_draw_4')
+
+		return PlayIntent(ACTION_CALL_BLUFF)
 
 	def get_next_player(self):
 		return (self.current_player + self.direction) % self.num_players
