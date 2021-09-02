@@ -204,12 +204,14 @@ class Game():
 			self.can_call_bluff = True
 			self.previous_bluffed = False
 
-			# Check if any card could have been played
-			for player_card in self.player_cards[self.current_player]:
-				if player_card.color == self.current_color:
-					self.previous_bluffed = True
-					break
-
+			# Check if any cards that aren't +4s could have been played,
+			# if there are then it is a bluff.
+			for intent in self.get_play_intents_cards():
+				if intent.can_play:
+					if intent.card.kind != KIND_DRAW_4:
+						self.previous_bluffed = True
+						break
+						
 		# Make card the current card
 		self.set_current_card(card)
 
@@ -331,19 +333,108 @@ class Game():
 		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
+	def get_play_intents(self):
+
+		# ACTION_PLAY
+		yield from self.get_play_intents_cards()
+
+		# ACTION_DRAW
+		yield self.get_play_intent_draw()
+
+		# ACTION_PASS
+		yield self.get_play_intent_pass()
+
+		# ACTION_CALL_BLUFF
+		yield self.get_play_intent_call_bluff()
+
+	def get_play_intents_cards(self):
+
+		for card in self.player_cards[self.current_player]:
+			yield self.get_play_intent_card(card)
+
+	def get_play_intent_card(self, card):
+
+		# Config for only allowing last drawn card to be played
+		if not self.allow_play_non_drawn_cards:
+			if self.drawn_card:
+				if card != self.drawn_card:
+					return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='not_drawn_card')
+
+		# Check if draws are required
+		if self.draw_amount == 0:
+			# When no draw card has been played last
+
+			# If card has color
+			if card.color != NO_COLOR:
+				# If card doesn't match current kind or color
+				if not (card.kind == self.current_kind or card.color == self.current_color):
+					return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='card_doesnt_match')
+
+		else:
+			# When draw card has been played last
+			
+			if self.current_kind == KIND_DRAW_2:
+				if card.kind != KIND_DRAW_2 and card.kind != KIND_DRAW_4:
+					return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='not_draw_2_or_draw_4')
+
+			elif self.current_kind == KIND_DRAW_4:
+				if card.kind == KIND_DRAW_2:
+					if self.draw_2_on_draw_4 == 'false':
+						return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='cant_draw_2_on_draw_4')
+					
+					if self.draw_2_on_draw_4 == 'true':
+						# Only allow if +2 is the chosen +4 color
+						if card.color != self.current_color:
+							return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='draw_2_different_color')
+
+					if self.draw_2_on_draw_4 == 'true_any_color':
+						pass
+
+				elif card.kind == KIND_DRAW_4:
+					if not self.draw_4_on_draw_4:
+						return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='cant_draw_4_on_draw_4')
+
+		return PlayIntent(ACTION_PLAY, card)
+
+	def get_play_intent_draw(self):
+
+		# Config for allowing only one draw
+		if self.draw_pass_behavior == 'single_draw':
+			if self.drawn_card:
+				return PlayIntent(ACTION_DRAW, can_play=False, fail_reason='already_drew')
+
+		return PlayIntent(ACTION_DRAW)
+
+	def get_play_intent_pass(self):
+
+		if self.draw_pass_behavior == 'multiple_draws_disable_pass':
+			return PlayIntent(ACTION_PASS, can_play=False, fail_reason='cannot_pass')
+
+		if not self.allow_pass_without_draw:
+			if not self.drawn_card:
+				return PlayIntent(ACTION_PASS, can_play=False, fail_reason='hasnt_drawn')
+
+		return PlayIntent(ACTION_PASS)
+
+	def get_play_intent_call_bluff(self):
+
+		if self.disable_call_bluff:
+			return PlayIntent(ACTION_CALL_BLUFF, can_play=False, fail_reason='bluff_disabled')
+
+		if not self.can_call_bluff:
+			return PlayIntent(ACTION_CALL_BLUFF, can_play=False, fail_reason='last_not_draw_4')
+
 	def get_next_player(self):
 		return (self.current_player + self.direction) % self.num_players
-
-	def get_plays(self):
-		pass
 
 
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
 PlayResult = namedtuple('PlayResult',
 	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'uno', 'draw_pile_has_emptied', 'fail_reason'],
-	defaults=
-	(False, None, None, None, None, None, False, False, None))
+	defaults=(False, None, None, None, None, None, False, False, None,))
+PlayIntent = namedtuple('PlayIntent', ['action', 'card', 'can_play', 'fail_reason'],
+	defaults=(None, None, True, None,))
 
 def make_cards(kinds, colors, amount=1):
 	for kind in kinds:
