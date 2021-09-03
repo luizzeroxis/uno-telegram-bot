@@ -385,6 +385,7 @@ def handler_text_message(update, context):
 			if game.winner != None:
 				winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
 				update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
+				return
 
 			# Check if is the current player
 			if game.current_player != player_number:
