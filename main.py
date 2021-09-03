@@ -319,7 +319,7 @@ def handler_configs(update, context):
 				default = server.all_configs[config][0]
 				text += config + ': ' + str(configs.get(config, default)) + '\n'
 
-			reply_markup = ReplyKeyboardMarkup([[("/config " + x)] for x in list(server.all_configs.keys())], input_field_placeholder="Choose a configuration...", one_time_keyboard=True)
+			reply_markup = ReplyKeyboardMarkup([[("/configs " + x)] for x in list(server.all_configs.keys())], input_field_placeholder="Choose a configuration...", one_time_keyboard=True)
 
 		elif len(context.args) == 1:
 
