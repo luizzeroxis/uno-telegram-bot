@@ -8,7 +8,7 @@ import uno, unoparser
 from plural import plural
 import server
 
-from telegram import ParseMode
+from telegram import ParseMode, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError
 
@@ -302,6 +302,8 @@ def handler_chat(update, context):
 def handler_configs(update, context):
 
 	text, text_to_all = '', ''
+	reply_markup = None
+
 	user_id = update.message.from_user.id
 	room_id = server.get_current_room(user_id)
 
@@ -316,6 +318,8 @@ def handler_configs(update, context):
 			for config in server.all_configs:
 				default = server.all_configs[config][0]
 				text += config + ': ' + str(configs.get(config, default)) + '\n'
+
+			reply_markup = ReplyKeyboardMarkup([list(server.all_configs.keys())], input_field_placeholder="Choose a configuration...")
 
 		elif len(context.args) == 1:
 
@@ -353,7 +357,7 @@ def handler_configs(update, context):
 		text += 'You cannot change room configuration if you are not in a room!\n'
 	
 	if text:
-		update.message.reply_text(text)
+		update.message.reply_text(text, reply_markup=reply_markup)
 
 def handler_error(update, context):
 
