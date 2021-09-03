@@ -302,7 +302,7 @@ def handler_chat(update, context):
 def handler_configs(update, context):
 
 	text, text_to_all = '', ''
-	reply_markup = None
+	reply_markup = ReplyKeyboardRemove()
 
 	user_id = update.message.from_user.id
 	room_id = server.get_current_room(user_id)
