@@ -8,7 +8,7 @@ import uno, unoparser
 from plural import plural
 import server
 
-from telegram import ParseMode, ReplyKeyboardMarkup
+from telegram import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, ChatMigrated, NetworkError
 
@@ -69,7 +69,7 @@ def handler_start(update, context):
 	handler_help(update, context)
 
 def handler_help(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 
 def handler_settings(update, context):
 	
@@ -114,7 +114,7 @@ def handler_settings(update, context):
 		else:
 			text += 'This setting does not exist!\n'
 
-	update.message.reply_text(text)
+	update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 
 def handler_status(update, context):
 
@@ -123,7 +123,7 @@ def handler_status(update, context):
 	settings = settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
-	bot.send_message(user_id, text)
+	bot.send_message(user_id, text, reply_markup=ReplyKeyboardRemove())
 
 def handler_new(update, context):
 	
@@ -141,7 +141,7 @@ def handler_new(update, context):
 	else:
 		text = 'You are already in room ' + str(current_room_id) + '! You must /leave that room first.\n'
 
-	update.message.reply_text(text)
+	update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 
 def handler_join(update, context):
 
@@ -182,7 +182,7 @@ def handler_join(update, context):
 	else:
 		text += 'You have not said the room you want to join! Try /join <room number>\n'
 
-	update.message.reply_text(text)
+	update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 	send_message_to_room(room_id, text_to_all)
 
 def handler_leave(update, context):
@@ -216,7 +216,7 @@ def handler_leave(update, context):
 	else:
 		text += 'You are not in any room right now!\n'
 
-	update.message.reply_text(text)
+	update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 	send_message_to_room(room_id, text_to_all)
 
 def handler_begin(update, context):
@@ -260,7 +260,7 @@ def handler_begin(update, context):
 		send_message_to_room(room_id, get_user_status_text)
 
 	else:
-		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>")
+		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>", reply_markup=ReplyKeyboardRemove())
 
 def handler_end(update, context):
 	
@@ -278,10 +278,10 @@ def handler_end(update, context):
 			send_message_to_room(room_id, get_user_name(user_id) + ' has ended the game')
 
 		else:
-			update.message.reply_text("But there is no game going on!")
+			update.message.reply_text("But there is no game going on!", reply_markup=ReplyKeyboardRemove())
 
 	else:
-		update.message.reply_text("You cannot end the game if you are not in a room! Try /new or /join <room number>")
+		update.message.reply_text("You cannot end the game if you are not in a room! Try /new or /join <room number>", reply_markup=ReplyKeyboardRemove())
 
 def handler_chat(update, context):
 
@@ -295,7 +295,7 @@ def handler_chat(update, context):
 		text_to_all += get_user_name(user_id) + ': ' + message
 	else:
 		text += 'You cannot send chat messages if you are not in a room!\n'
-		update.message.reply_text(text)
+		update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 
 	send_message_to_room(room_id, text_to_all, not_me=user_id)
 
@@ -362,7 +362,7 @@ def handler_configs(update, context):
 def handler_error(update, context):
 
 	user_id = update.message.from_user.id
-	bot.send_message(user_id, get_error_message())
+	bot.send_message(user_id, get_error_message(), reply_markup=ReplyKeyboardRemove())
 
 def handler_text_message(update, context):
 	
@@ -384,13 +384,13 @@ def handler_text_message(update, context):
 			# Check if someone has already won the game
 			if game.winner != None:
 				winner_user_id = server.select_user_id_from_player_number(room_id, game.winner)
-				update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin')
+				update.message.reply_text(get_user_name(winner_user_id) + ' already won this game! You cannot play anymore. Try /begin', reply_markup=ReplyKeyboardRemove())
 				return
 
 			# Check if is the current player
 			if game.current_player != player_number:
 				current_user_id = server.select_user_id_from_player_number(room_id, game.current_player)
-				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id))
+				update.message.reply_text('It is not your turn! The current player is ' + get_user_name(current_user_id), reply_markup=ReplyKeyboardRemove())
 				return
 
 			# Try to parse the user text
@@ -398,7 +398,7 @@ def handler_text_message(update, context):
 				play = unoparser.parse_play(message)
 
 			except unoparser.InputParsingError as e:
-				update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help')
+				update.message.reply_text('That is not how you play! ' + str(e) + ' And try reading /help', reply_markup=ReplyKeyboardRemove())
 				return
 
 			bluffed_player = game.previous_player
@@ -409,12 +409,12 @@ def handler_text_message(update, context):
 			# If failed, send reason
 			if not play_result.success:
 				fail_reason = unoparser.fail_reason_string(play_result.fail_reason)
-				update.message.reply_text(fail_reason)
+				update.message.reply_text(fail_reason, reply_markup=ReplyKeyboardRemove())
 				return
 
 			if play_result.draw_pile_has_emptied:
 				send_message_to_room(room_id,
-					'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
+					'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.', reply_markup=ReplyKeyboardRemove())
 
 			# Store game in database
 			server.update_game(room_id, game)
@@ -442,23 +442,23 @@ def handler_text_message(update, context):
 					play_number_text = '#' + str(game.current_play_number) + ': '
 
 				play_result_text = play_number_text + unoparser.play_result_string(play_result, user_name, bluffed_user_name)
-				bot.send_message(room_user_id, play_result_text)
+				bot.send_message(room_user_id, play_result_text, reply_markup=ReplyKeyboardRemove())
 
 				# Send if someone won
 				if game.winner != None:
-					bot.send_message(room_user_id, user_name + ' won.')
+					bot.send_message(room_user_id, user_name + ' won.', reply_markup=ReplyKeyboardRemove())
 					continue
 
 				# Send status to current player
 				if room_user_id == current_user_id:
 					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
-					bot.send_message(room_user_id, text)
+					bot.send_message(room_user_id, text, reply_markup=ReplyKeyboardRemove())
 
 		else:
-			update.message.reply_text('There is no game going on! Try /begin')
+			update.message.reply_text('There is no game going on! Try /begin', reply_markup=ReplyKeyboardRemove())
 
 	else:
-		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>')
+		update.message.reply_text('You cannot play if you are not in a room! Try /new or /join <room number>', reply_markup=ReplyKeyboardRemove())
 
 def error_handler(update, context):
 	try:
@@ -482,7 +482,7 @@ def error_handler(update, context):
 		# handle all other telegram related errors
 		logging.exception('Uncaught')
 	except Exception as e:
-		bot.send_message(update.message.from_user.id, get_error_message())
+		bot.send_message(update.message.from_user.id, get_error_message(), reply_markup=ReplyKeyboardRemove())
 		logging.exception('Uncaught')
 
 ## Helper functions
@@ -533,9 +533,9 @@ def send_message_to_room(room_id, text, not_me=None):
 				if callable(text):
 					new_text = text(user_id)
 					if new_text:
-						bot.send_message(user_id, new_text, disable_web_page_preview=True)
+						bot.send_message(user_id, new_text, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 				else:
-					bot.send_message(user_id, text, disable_web_page_preview=True)
+					bot.send_message(user_id, text, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 
 def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False):
 
