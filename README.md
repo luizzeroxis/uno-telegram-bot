@@ -22,6 +22,8 @@ With this bot, you can create and join rooms with other people and play UNO with
 
 **/chat** \<message\> - Send a message to all other people in the room.
 
+**.** \<message\> - /chat shortcut.
+
 **/settings** \<setting\> \<value\> - View or update your user settings.
 
 **/configs** \<config\> \<value\> - View or update the room's configurations.

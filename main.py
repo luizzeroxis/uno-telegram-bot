@@ -285,19 +285,12 @@ def handler_end(update, context):
 
 def handler_chat(update, context):
 
-	text, text_to_all = '', ''
 	user_id = update.message.from_user.id
 	room_id = server.get_current_room(user_id)
 
-	message = ' '.join(context.args)
+	message = update.message.text
 
-	if room_id:
-		text_to_all += get_user_name(user_id) + ': ' + message
-	else:
-		text += 'You cannot send chat messages if you are not in a room!\n'
-		update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
-
-	send_message_to_room(room_id, text_to_all, not_me=user_id)
+	command_chat(update, user_id, room_id, message)
 
 def handler_configs(update, context):
 
@@ -369,9 +362,14 @@ def handler_text_message(update, context):
 	user_id = update.message.from_user.id
 	room_id = server.get_current_room(user_id)
 
-	if room_id:
+	message = update.message.text
 
-		message = update.message.text
+	# Check if it is a chat message
+	if (len(message) > 0 and message[0] == "."):
+		command_chat(update, user_id, room_id, message[1:])
+		return
+
+	if room_id:
 
 		game = server.select_game(room_id)
 		player_number = server.select_player_number(room_id, user_id)
@@ -498,7 +496,7 @@ def help_text():
 		"/leave - Leave a room\n"
 		"/begin - Begin game\n"
 		"/end - End game\n"
-		"/chat - Send a message to all in room\n"
+		"/chat or . - Send a message to all in room\n"
 		"/settings - Change user settings\n"
 		"/configs - Change room configurations\n"
 		"\n"
@@ -514,6 +512,16 @@ def help_text():
 		"\n"
 		"Github: https://github.com/luizeldorado/uno-telegram-bot\n"
 	)
+
+def command_chat(update, user_id, room_id, message):
+
+	if room_id:
+		text_to_all = get_user_name(user_id) + ': ' + message
+		send_message_to_room(room_id, text_to_all, not_me=user_id)
+
+	else:
+		text = 'You cannot send chat messages if you are not in a room!'
+		update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
 
 def string_to_positive_integer(string):
 	try:
