@@ -69,7 +69,7 @@ def handler_start(update, context):
 	handler_help(update, context)
 
 def handler_help(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
+	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN_V2, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 
 def handler_settings(update, context):
 	
@@ -123,7 +123,7 @@ def handler_status(update, context):
 	settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
-	bot.send_message(user_id, text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
+	bot.send_message(user_id, text, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=ReplyKeyboardRemove())
 
 def handler_new(update, context):
 	
@@ -257,7 +257,7 @@ def handler_begin(update, context):
 			settings = get_and_apply_user_settings(user_id)
 			return get_status_text(room_id, user_id, show_room_info=False)
 
-		send_message_to_room(room_id, get_user_status_text, parse_mode=ParseMode.MARKDOWN)
+		send_message_to_room(room_id, get_user_status_text, parse_mode=ParseMode.MARKDOWN_V2)
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>", reply_markup=ReplyKeyboardRemove())
@@ -450,7 +450,7 @@ def handler_text_message(update, context):
 				# Send status to current player
 				if room_user_id == current_user_id:
 					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
-					bot.send_message(room_user_id, text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
+					bot.send_message(room_user_id, text, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=ReplyKeyboardRemove())
 
 		else:
 			update.message.reply_text('There is no game going on! Try /begin', reply_markup=ReplyKeyboardRemove())
