@@ -69,7 +69,7 @@ def handler_start(update, context):
 	handler_help(update, context)
 
 def handler_help(update, context):
-	update.message.reply_text(help_text(), parse_mode=ParseMode.MARKDOWN_V2, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
+	update.message.reply_text(help_text(), parse_mode=ParseMode.HTML, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 
 def handler_settings(update, context):
 	
@@ -123,7 +123,7 @@ def handler_status(update, context):
 	settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
-	bot.send_message(user_id, text, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=ReplyKeyboardRemove())
+	bot.send_message(user_id, text, parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
 
 def handler_new(update, context):
 	
@@ -257,7 +257,7 @@ def handler_begin(update, context):
 			settings = get_and_apply_user_settings(user_id)
 			return get_status_text(room_id, user_id, show_room_info=False)
 
-		send_message_to_room(room_id, get_user_status_text, parse_mode=ParseMode.MARKDOWN_V2)
+		send_message_to_room(room_id, get_user_status_text, parse_mode=ParseMode.HTML)
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>", reply_markup=ReplyKeyboardRemove())
@@ -450,7 +450,7 @@ def handler_text_message(update, context):
 				# Send status to current player
 				if room_user_id == current_user_id:
 					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
-					bot.send_message(room_user_id, text, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=ReplyKeyboardRemove())
+					bot.send_message(room_user_id, text, parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
 
 		else:
 			update.message.reply_text('There is no game going on! Try /begin', reply_markup=ReplyKeyboardRemove())
@@ -487,7 +487,7 @@ def error_handler(update, context):
 
 def help_text():
 	return (
-		"*ZeroXis bot - made by* @luizeldorado\n"
+		"<b>ZeroXis bot - made by</b> @luizeldorado\n"
 		"\n"
 		"/help - Shows this\n"
 		"/status - Show what's going on\n"
@@ -504,9 +504,9 @@ def help_text():
 		"d - Draw card(s)\n"
 		"p - Pass\n"
 		"c - Call bluff\n"
-		"<color><kind> - Play card of said color and kind.\n"
-		"<color> can be b, g, r, y, or nothing in kinds that have no color.\n"
-		"<kind> can be 0 to 9, r, s, +2, +4, or w\n"
+		"&lt;color&gt;&lt;kind&gt; - Play card of said color and kind.\n"
+		"&lt;color&gt; can be b, g, r, y, or nothing in kinds that have no color.\n"
+		"&lt;kind&gt; can be 0 to 9, r, s, +2, +4, or w\n"
 		"+4 and w have no color, but you have to specify a color after it.\n"
 		"Examples: g6, rr, +4y\n"
 		"\n"

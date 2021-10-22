@@ -85,7 +85,7 @@ def card_color_string(card_color):
 
 def play_intent_string(play_intent):
 	if play_intent.can_play and HIGHLIGHT_PLAYABLE:
-		f_string = "__{}__"
+		f_string = "<u>{}</u>"
 	else:
 		f_string = "{}"
 
