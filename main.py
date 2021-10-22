@@ -123,7 +123,7 @@ def handler_status(update, context):
 	settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
-	bot.send_message(user_id, text, reply_markup=ReplyKeyboardRemove())
+	bot.send_message(user_id, text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
 
 def handler_new(update, context):
 	
@@ -257,7 +257,7 @@ def handler_begin(update, context):
 			settings = get_and_apply_user_settings(user_id)
 			return get_status_text(room_id, user_id, show_room_info=False)
 
-		send_message_to_room(room_id, get_user_status_text)
+		send_message_to_room(room_id, get_user_status_text, parse_mode=ParseMode.MARKDOWN)
 
 	else:
 		update.message.reply_text("You cannot begin the game if you are not in a room! Try /new or /join <room number>", reply_markup=ReplyKeyboardRemove())
@@ -450,7 +450,7 @@ def handler_text_message(update, context):
 				# Send status to current player
 				if room_user_id == current_user_id:
 					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
-					bot.send_message(room_user_id, text, reply_markup=ReplyKeyboardRemove())
+					bot.send_message(room_user_id, text, parse_mode=ParseMode.MARKDOWN, reply_markup=ReplyKeyboardRemove())
 
 		else:
 			update.message.reply_text('There is no game going on! Try /begin', reply_markup=ReplyKeyboardRemove())
@@ -533,7 +533,7 @@ def string_to_positive_integer(string):
 		return number
 	return None
 
-def send_message_to_room(room_id, text, not_me=None):
+def send_message_to_room(room_id, text, not_me=None, parse_mode=None):
 	if text and room_id:
 		for user_id in server.select_users_ids_in_room(room_id):
 			if user_id != not_me:
@@ -541,9 +541,9 @@ def send_message_to_room(room_id, text, not_me=None):
 				if callable(text):
 					new_text = text(user_id)
 					if new_text:
-						bot.send_message(user_id, new_text, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
+						bot.send_message(user_id, new_text, parse_mode=parse_mode, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 				else:
-					bot.send_message(user_id, text, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
+					bot.send_message(user_id, text, parse_mode=parse_mode, disable_web_page_preview=True, reply_markup=ReplyKeyboardRemove())
 
 def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False):
 
