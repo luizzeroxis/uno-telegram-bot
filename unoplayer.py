@@ -93,7 +93,7 @@ def status():
 	text += 'Your cards: '
 	
 	if len(game.player_cards[player_number]) != 0:
-		text += unoparser.card_list_string(game.player_cards[player_number])
+		text += unoparser.play_intent_list_string(game.get_play_intents_cards(player_number))
 	else:
 		text += 'None!'
 

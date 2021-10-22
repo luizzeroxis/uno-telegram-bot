@@ -17,11 +17,12 @@ all_settings = {
 all_configs = {
 	# TODO
 	'draw_4_on_draw_4': ('false', 'true',),
-	'draw_2_on_draw_4': ('false', 'true', 'true_any_color'),
+	'draw_2_on_draw_4': ('false', 'true', 'true_any_color',),
 	'disable_call_bluff': ('false', 'true',),
 	'allow_play_non_drawn_cards': ('false', 'true',),
 	'allow_pass_without_draw': ('false', 'true',),
-	'draw_pass_behavior': ('single_draw', 'multiple_draws', 'multiple_draws_disable_pass'),
+	'draw_pass_behavior': ('single_draw', 'multiple_draws', 'multiple_draws_disable_pass',),
+	'allow_highlight_playable_cards': ('false', 'true',),
 
 	# 'number_starting_cards': 7,
 }

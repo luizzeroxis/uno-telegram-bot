@@ -120,7 +120,7 @@ def handler_status(update, context):
 
 	user_id = update.message.from_user.id
 
-	settings = settings = get_and_apply_user_settings(user_id)
+	settings = get_and_apply_user_settings(user_id)
 	text = get_status_text(server.get_current_room(user_id), user_id)
 
 	bot.send_message(user_id, text, reply_markup=ReplyKeyboardRemove())
@@ -552,6 +552,9 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 	if room_id:
 		users = server.select_users_info_in_room(room_id)
 		game = server.select_game(room_id)
+		
+		configs = server.get_room_configs(room_id)
+		apply_room_configs(configs, game)
 
 		if show_room_info:
 			num_users = len(users)
@@ -596,9 +599,9 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 			player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))
 
 			text += 'Your cards: '
-			
+
 			if len(game.player_cards[player_number]) != 0:
-				text += unoparser.card_list_string(game.player_cards[player_number])
+				text += unoparser.play_intent_list_string(game.get_play_intents_cards(player_number))
 			else:
 				text += 'None!'
 
@@ -674,6 +677,9 @@ def apply_room_configs(configs, game):
 	game.allow_play_non_drawn_cards = (configs.get('allow_play_non_drawn_cards') == 'true')
 	game.allow_pass_without_draw = (configs.get('allow_pass_without_draw') == 'true')
 	game.draw_pass_behavior = (configs.get('draw_pass_behavior'))
+
+	# game.allow_highlight_playable_cards = (configs.get('allow_highlight_playable_cards') == 'true')
+	unoparser.HIGHLIGHT_PLAYABLE = (configs.get('allow_highlight_playable_cards') == 'true')
 
 
 if __name__ == "__main__":

@@ -138,7 +138,7 @@ class Game():
 
 		self.draw_pile_has_emptied = False
 
-		for intent in self.get_play_intents():
+		for intent in self.get_play_intents(self.current_player):
 			if intent.action == play.action and intent.card == play.card:
 				
 				if intent.can_play:
@@ -171,7 +171,7 @@ class Game():
 
 			# Check if any cards that aren't +4s could have been played,
 			# if there are then it is a bluff.
-			for intent in self.get_play_intents_cards():
+			for intent in self.get_play_intents_cards(self.current_player):
 				if intent.can_play:
 					if intent.card.kind != KIND_DRAW_4:
 						self.previous_bluffed = True
@@ -276,26 +276,29 @@ class Game():
 		self.current_play_number += 1
 		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
-	def get_play_intents(self):
+	def get_play_intents(self, player):
 
 		# ACTION_PLAY
-		yield from self.get_play_intents_cards()
+		yield from self.get_play_intents_cards(player)
 
 		# ACTION_DRAW
-		yield self.get_play_intent_draw()
+		yield self.get_play_intent_draw(player)
 
 		# ACTION_PASS
-		yield self.get_play_intent_pass()
+		yield self.get_play_intent_pass(player)
 
 		# ACTION_CALL_BLUFF
-		yield self.get_play_intent_call_bluff()
+		yield self.get_play_intent_call_bluff(player)
 
-	def get_play_intents_cards(self):
+	def get_play_intents_cards(self, player):
 
-		for card in self.player_cards[self.current_player]:
-			yield self.get_play_intent_card(card)
+		for card in self.player_cards[player]:
+			yield self.get_play_intent_card(card, player)
 
-	def get_play_intent_card(self, card):
+	def get_play_intent_card(self, card, player):
+
+		if player != self.current_player:
+			return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='not_current_player')
 
 		# Config for only allowing last drawn card to be played
 		if not self.allow_play_non_drawn_cards:
@@ -341,7 +344,10 @@ class Game():
 
 			return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='draw_played')
 
-	def get_play_intent_draw(self):
+	def get_play_intent_draw(self, player):
+
+		if player != self.current_player:
+			return PlayIntent(ACTION_DRAW, can_play=False, fail_reason='not_current_player')
 
 		# Config for allowing only one draw
 		if self.draw_pass_behavior == 'single_draw':
@@ -350,7 +356,10 @@ class Game():
 
 		return PlayIntent(ACTION_DRAW)
 
-	def get_play_intent_pass(self):
+	def get_play_intent_pass(self, player):
+
+		if player != self.current_player:
+			return PlayIntent(ACTION_PASS, can_play=False, fail_reason='not_current_player')
 
 		# Config for disallowing passing
 		if self.draw_pass_behavior == 'multiple_draws_disable_pass':
@@ -363,7 +372,10 @@ class Game():
 
 		return PlayIntent(ACTION_PASS)
 
-	def get_play_intent_call_bluff(self):
+	def get_play_intent_call_bluff(self, player):
+
+		if player != self.current_player:
+			return PlayIntent(ACTION_CALL_BLUFF, can_play=False, fail_reason='not_current_player')
 
 		if self.disable_call_bluff:
 			return PlayIntent(ACTION_CALL_BLUFF, can_play=False, fail_reason='bluff_disabled')

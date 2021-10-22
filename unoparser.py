@@ -69,6 +69,8 @@ COLOR_CMD_STRINGS = {
 	'yellow': uno.COLOR_YELLOW,
 }
 
+HIGHLIGHT_PLAYABLE = True
+
 def card_string(card):
 	return ''.join(x for x in [card_color_string(card.color), card_kind_string(card.kind)] if x)
 
@@ -80,6 +82,24 @@ def card_kind_string(card_kind):
 
 def card_color_string(card_color):
 	return COLOR_STRINGS[card_color]
+
+def play_intent_string(play_intent):
+	if play_intent.can_play and HIGHLIGHT_PLAYABLE:
+		f_string = "*{}*"
+	else:
+		f_string = "{}"
+
+	if play_intent.action == uno.ACTION_PLAY:
+		return f_string.format(card_string(play_intent.card))
+	elif play_intent.action == uno.ACTION_DRAW:
+		return f_string.format("Draw")
+	elif play_intent.action == uno.ACTION_PASS:
+		return f_string.format("Pass")
+	elif play_intent.action == uno.ACTION_CALL_BLUFF:
+		return f_string.format("Call bluff")
+
+def play_intent_list_string(play_intent_list):
+	return ", ".join((play_intent_string(play_intent) for play_intent in play_intent_list))
 
 def play_result_string(play_result, current_player_name, last_player_name=None):
 
@@ -141,6 +161,8 @@ def fail_reason_string(fail_reason):
 		return 'Calling bluffs has been disabled!'
 	elif fail_reason == 'last_not_draw_4':
 		return 'You cannot call a bluff if the previous player has not played a +4!'
+	elif fail_reason == 'draw_played':
+		return 'You cannot play non draw cards on draw cards!'
 	else:
 		return 'You failed in an unforeseen way! (' + str(fail_reason) + ')'
 
