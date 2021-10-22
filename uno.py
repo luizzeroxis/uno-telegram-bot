@@ -313,6 +313,8 @@ class Game():
 				if not (card.kind == self.current_kind or card.color == self.current_color):
 					return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='card_doesnt_match')
 
+			return PlayIntent(ACTION_PLAY, card)
+
 		else:
 			# When draw card has been played last
 			
@@ -337,7 +339,7 @@ class Game():
 					if not self.draw_4_on_draw_4:
 						return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='cant_draw_4_on_draw_4')
 
-		return PlayIntent(ACTION_PLAY, card)
+			return PlayIntent(ACTION_PLAY, card, can_play=False, fail_reason='draw_played')
 
 	def get_play_intent_draw(self):
 
