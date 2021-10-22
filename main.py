@@ -579,11 +579,11 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 
 				if game.winner == None:
 					if game.current_player == for_player_number:
-						text += ' <- Current'
+						text += ' &lt;- Current'
 					elif game.get_next_player() == for_player_number:
-						text += ' <- Next'
+						text += ' &lt;- Next'
 				elif game.winner == for_player_number:
-					text += ' <- Winner'
+					text += ' &lt;- Winner'
 
 			else:
 				text += '- ' + for_user_name
