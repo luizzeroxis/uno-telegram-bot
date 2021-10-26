@@ -288,7 +288,7 @@ def handler_chat(update, context):
 	user_id = update.message.from_user.id
 	room_id = server.get_current_room(user_id)
 
-	message = update.message.text
+	message = update.message.text[len('/chat '):]
 
 	command_chat(update, user_id, room_id, message)
 
