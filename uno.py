@@ -21,6 +21,7 @@ class Game():
 		self.allow_play_non_drawn_cards = False
 		self.allow_pass_without_draw = False
 		self.draw_pass_behavior = 'single_draw'
+		self.show_bluffer_cards = True
 
 		# init
 		self.reset()
@@ -249,6 +250,12 @@ class Game():
 
 	def play_call_bluff(self):
 
+		bluffer_cards = None
+
+		if self.show_bluffer_cards:
+			# Copy cards of the player accused of bluffing
+			bluffer_cards = list(self.player_cards[self.previous_player])
+
 		# If bluffed, previous player has to draw stacked draw card amount
 		if self.previous_bluffed:
 
@@ -274,7 +281,7 @@ class Game():
 		self.next_player()
 
 		self.current_play_number += 1
-		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
+		return PlayResult(success=True, action=ACTION_CALL_BLUFF, bluffed=self.previous_bluffed, bluffer_cards=bluffer_cards, num_draw=num_draw, draw_pile_has_emptied=self.draw_pile_has_emptied)
 
 	def get_play_intents(self, player):
 
@@ -393,8 +400,8 @@ class Game():
 Card = namedtuple('Card', ['kind', 'color'])
 Play = namedtuple('Play', ['action', 'card', 'new_color'])
 PlayResult = namedtuple('PlayResult',
-	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'uno', 'draw_pile_has_emptied', 'fail_reason'],
-	defaults=(False, None, None, None, None, None, False, False, None,))
+	['success', 'action', 'card', 'new_color', 'num_draw', 'bluffed', 'bluffer_cards', 'uno', 'draw_pile_has_emptied', 'fail_reason'],
+	defaults=(False, None, None, None, None, None, None, False, False, None,))
 PlayIntent = namedtuple('PlayIntent', ['action', 'card', 'can_play', 'fail_reason'],
 	defaults=(None, None, True, None,))
 

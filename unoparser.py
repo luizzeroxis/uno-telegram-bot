@@ -69,7 +69,7 @@ COLOR_CMD_STRINGS = {
 	'yellow': uno.COLOR_YELLOW,
 }
 
-HIGHLIGHT_PLAYABLE = True
+HIGHLIGHT_PLAYABLE = False
 
 def card_string(card):
 	return ''.join(x for x in [card_color_string(card.color), card_kind_string(card.kind)] if x)

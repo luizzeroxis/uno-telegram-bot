@@ -23,6 +23,7 @@ all_configs = {
 	'allow_pass_without_draw': ('false', 'true',),
 	'draw_pass_behavior': ('single_draw', 'multiple_draws', 'multiple_draws_disable_pass',),
 	'allow_highlight_playable_cards': ('false', 'true',),
+	'show_bluffer_cards': ('true', 'false',),
 
 	# 'number_starting_cards': 7,
 }

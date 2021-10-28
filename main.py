@@ -434,6 +434,12 @@ def handler_text_message(update, context):
 			for room_user_id in server.select_users_ids_in_room(room_id):
 				settings = get_and_apply_user_settings(room_user_id)
 
+				# Send cards of accused bluffer to player that called the bluff
+				if room_used_id == user_id:
+					if play_result.bluffer_cards != None:
+						bluffer_cards_text = '(' + bluffed_user_name + '\'s cards are ' + unoparser.card_list_string(play_result.bluffer_cards) + ')'
+						bot.send_message(room_user_id, bluffer_cards_text, reply_markup=ReplyKeyboardRemove()) 
+
 				# Send made play
 				play_number_text = ''
 				if settings.get('show_play_number', 'false') == 'true':
@@ -677,6 +683,7 @@ def apply_room_configs(configs, game):
 	game.allow_play_non_drawn_cards = (configs.get('allow_play_non_drawn_cards') == 'true')
 	game.allow_pass_without_draw = (configs.get('allow_pass_without_draw') == 'true')
 	game.draw_pass_behavior = (configs.get('draw_pass_behavior'))
+	game.show_bluffer_cards = (configs.get('show_bluffer_cards') == 'true')
 
 	# game.allow_highlight_playable_cards = (configs.get('allow_highlight_playable_cards') == 'true')
 	unoparser.HIGHLIGHT_PLAYABLE = (configs.get('allow_highlight_playable_cards') == 'true')

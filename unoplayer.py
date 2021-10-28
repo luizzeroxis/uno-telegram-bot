@@ -41,6 +41,10 @@ def play():
 	play_result = game.play(game.current_player, play)
 
 	if play_result.success:
+
+		if play_result.bluffer_cards != None:
+			print('(' + str(playing_previous_player) + '\'s cards are ' + unoparser.card_list_string(play_result.bluffer_cards) + ')') 
+
 		print("#" + str(game.current_play_number) + ": " + unoparser.play_result_string(play_result, playing_player, playing_previous_player))
 		status()
 		return True

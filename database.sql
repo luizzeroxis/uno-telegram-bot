@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 13.2
--- Dumped by pg_dump version 13.2
+-- Dumped from database version 13.3
+-- Dumped by pg_dump version 13.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -65,7 +65,8 @@ CREATE TABLE public.uno_rooms (
     allow_play_non_drawn_cards text DEFAULT 'false'::text NOT NULL,
     allow_pass_without_draw text DEFAULT 'false'::text NOT NULL,
     draw_pass_behavior text DEFAULT 'single_draw'::text NOT NULL,
-    allow_highlight_playable_cards text DEFAULT 'false'::text NOT NULL
+    allow_highlight_playable_cards text DEFAULT 'false'::text NOT NULL,
+    show_bluffer_cards text DEFAULT 'true'::text NOT NULL
 );
 
 
