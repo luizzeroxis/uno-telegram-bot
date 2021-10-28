@@ -435,7 +435,7 @@ def handler_text_message(update, context):
 				settings = get_and_apply_user_settings(room_user_id)
 
 				# Send cards of accused bluffer to player that called the bluff
-				if room_used_id == user_id:
+				if room_user_id == user_id:
 					if play_result.bluffer_cards != None:
 						bluffer_cards_text = '(' + bluffed_user_name + '\'s cards are ' + unoparser.card_list_string(play_result.bluffer_cards) + ')'
 						bot.send_message(room_user_id, bluffer_cards_text, reply_markup=ReplyKeyboardRemove()) 
