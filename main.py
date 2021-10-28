@@ -522,7 +522,7 @@ def help_text():
 def command_chat(update, user_id, room_id, message):
 
 	if room_id:
-		text_to_all = get_user_name(user_id) + ': ' + message
+		text_to_all = get_user_name(user_id) + ': ' + message.strip()
 		send_message_to_room(room_id, text_to_all, not_me=user_id)
 
 	else:
