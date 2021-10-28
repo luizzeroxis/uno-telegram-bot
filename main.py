@@ -412,7 +412,7 @@ def handler_text_message(update, context):
 
 			if play_result.draw_pile_has_emptied:
 				send_message_to_room(room_id,
-					'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.', reply_markup=ReplyKeyboardRemove())
+					'The draw pile does not have enough cards, cards from the discard pile have been shuffled into the draw pile.')
 
 			# Store game in database
 			server.update_game(room_id, game)
