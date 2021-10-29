@@ -18,12 +18,12 @@ def begin():
 	global game
 	game = uno.Game()
 
-	# game.draw_4_on_draw_4 = False
-	# game.draw_2_on_draw_4 = 'false'
+	game.draw_4_on_draw_4 = True
+	game.draw_2_on_draw_4 = 'true_any_color'
 	# game.disable_call_bluff = False
-	# game.allow_play_non_drawn_cards = False
+	game.allow_play_non_drawn_cards = True
 	# game.allow_pass_without_draw = False
-	# game.draw_pass_behavior = 'single_draw'
+	game.draw_pass_behavior = 'multiple_draws'
 
 	game.begin(num_players)
 

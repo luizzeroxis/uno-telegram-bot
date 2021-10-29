@@ -76,12 +76,17 @@ class Game():
 		self.current_color = card.color
 		self.discard_pile.append(card)
 
+	def can_pick_cards(self, number):
+		if len(self.draw_pile) < number:
+			if len(self.discard_pile) - 1 < (number - len(self.draw_pile)):
+				return False
+		return True
+
 	def pick_card(self):
 		if len(self.draw_pile) == 0:
 
 			if len(self.discard_pile) <= 1:
-				print("You ran out of cards. How's that even possible")
-				pass
+				raise Exception("You ran out of cards. How's that even possible")
 
 			self.draw_pile = self.discard_pile[:-1]
 			self.discard_pile = self.discard_pile[-1:]
@@ -212,6 +217,9 @@ class Game():
 
 			num_draw = self.draw_amount
 
+			if not self.can_pick_cards(self.draw_amount):
+				return PlayResult(fail_reason="out_of_cards")
+
 			self.player_cards[self.current_player] += list(self.pick_cards(self.draw_amount))
 
 			self.draw_amount = 0
@@ -225,6 +233,9 @@ class Game():
 			num_draw = 1
 
 			self.sort_player_cards(self.current_player)
+
+			if not self.can_pick_cards(1):
+				return PlayResult(fail_reason="out_of_cards")
 
 			self.drawn_card = self.pick_card()
 			self.player_cards[self.current_player].append(self.drawn_card)
@@ -261,6 +272,9 @@ class Game():
 
 			num_draw = self.draw_amount
 
+			if not self.can_pick_cards(num_draw):
+				return PlayResult(fail_reason="out_of_cards")
+
 			self.player_cards[self.previous_player] += list(self.pick_cards(num_draw))
 			self.sort_player_cards(self.previous_player)
 
@@ -269,6 +283,9 @@ class Game():
 
 			num_draw = self.draw_amount + 2
 
+			if not self.can_pick_cards(num_draw):
+				return PlayResult(fail_reason="out_of_cards")
+				
 			self.player_cards[self.current_player] += list(self.pick_cards(num_draw))
 
 		# Clear +4 effect

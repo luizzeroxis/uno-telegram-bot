@@ -163,6 +163,8 @@ def fail_reason_string(fail_reason):
 		return 'You cannot call a bluff if the previous player has not played a +4!'
 	elif fail_reason == 'draw_played':
 		return 'You cannot play non draw cards on draw cards!'
+	elif fail_reason == 'out_of_cards':
+		return 'You ran out of cards in the deck! It seems your journey has reached its end.'
 	else:
 		return 'You failed in an unforeseen way! (' + str(fail_reason) + ')'
 
