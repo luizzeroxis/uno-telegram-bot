@@ -98,7 +98,8 @@ CREATE TABLE public.uno_users (
     id integer NOT NULL,
     user_id integer,
     style text DEFAULT 'short'::text NOT NULL,
-    show_play_number text DEFAULT 'false'::text NOT NULL
+    show_play_number text DEFAULT 'false'::text NOT NULL,
+    receive_status text DEFAULT 'my_turn'::text NOT NULL
 );
 
 

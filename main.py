@@ -453,8 +453,15 @@ def handler_text_message(update, context):
 					bot.send_message(room_user_id, user_name + ' won.', reply_markup=ReplyKeyboardRemove())
 					continue
 
-				# Send status to current player
-				if room_user_id == current_user_id:
+				# Send status to player
+				send_status = False
+				if settings.get('receive_status') == 'my_turn':
+					if room_user_id == current_user_id:
+						send_status = True
+				elif settings.get('receive_status') == 'every_turn':
+					send_status = True
+
+				if send_status:
 					text = get_status_text(room_id, room_user_id, show_your_turn=True, show_room_info=False)
 					bot.send_message(room_user_id, text, parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
 
@@ -562,13 +569,17 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 		configs = server.get_room_configs(room_id)
 		apply_room_configs(configs, game)
 
+		player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))
+
 		if show_room_info:
 			num_users = len(users)
 			text += ('You are currently in room number ' + str(room_id)
 				+ ', which has ' + str(num_users) + ' ' + plural(num_users, 'user', 'users') + '.\n')
 
 		if show_your_turn:
-			text += 'It is your turn.\n'
+			if game:
+				if game.current_player == player_number:
+					text += 'It is your turn.\n'
 
 		if game:
 			if game.direction == -1:
@@ -601,8 +612,6 @@ def get_status_text(room_id, user_id, show_room_info=True, show_your_turn=False)
 			text += 'Current card: ' + unoparser.card_string(game.current_card) + '\n'
 			if game.current_color != game.current_card.color:
 				text += 'Chosen color: ' + unoparser.card_color_string(game.current_color) + '\n'
-
-			player_number = next((for_player_number for for_player_number, for_user_id in users if for_user_id == user_id))
 
 			text += 'Your cards: '
 

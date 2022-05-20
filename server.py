@@ -11,6 +11,7 @@ from psycopg2 import sql
 all_settings = {
 	'style': ('short', 'emoji', 'circle', 'heart', 'long',),
 	'show_play_number': ('false', 'true',),
+	'receive_status': ('my_turn', 'every_turn', 'never',),
 }
 
 # All possible room configs and its possible values (first one is the default)
