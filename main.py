@@ -17,7 +17,7 @@ bot = None
 def main():
 
 	# Environment vars
-	TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+	TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '5556436344:AAG5dgB_MfX-VuW1EGkBGLGZk3-eInak4yk')
 	TELEGRAM_BOT_WEBHOOK = os.environ.get('TELEGRAM_BOT_WEBHOOK')
 	PORT = os.environ.get('PORT')
 
